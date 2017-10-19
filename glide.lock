@@ -1,0 +1,119 @@
+hash: b386d75cba054bd7591b1c70575f30b3a0dffbca669ae96fd3dbafbaf780b9e8
+updated: 2017-10-19T16:53:25.283530349+08:00
+imports:
+- name: github.com/aristanetworks/goarista
+  version: 8e44bec0a94d7c1f0cdf28ed5215e5cfab441ad0
+  subpackages:
+  - monotime
+- name: github.com/btcsuite/btcd
+  version: 47885ab8702485be6b6f87a03d4f3be0bc5c982c
+  subpackages:
+  - btcec
+- name: github.com/ethereum/go-ethereum
+  version: cfc586a2d9a95981f7f5d848311d9e2d1f83b274
+  repo: git@github.com:getamis/go-ethereum
+  subpackages:
+  - common
+  - common/hexutil
+  - common/math
+  - common/mclock
+  - core/types
+  - crypto
+  - crypto/ecies
+  - crypto/secp256k1
+  - crypto/sha3
+  - ethclient
+  - event
+  - log
+  - metrics
+  - p2p
+  - p2p/discover
+  - p2p/discv5
+  - p2p/nat
+  - p2p/netutil
+  - params
+  - rlp
+  - rpc
+  - trie
+- name: github.com/go-stack/stack
+  version: 817915b46b97fd7bb80e8ab6b69f01a53ac3eebf
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/huin/goupnp
+  version: 9b81a7424f2384e4df098d4ac9096f9ed9d8ef95
+  subpackages:
+  - dcps/internetgateway1
+  - dcps/internetgateway2
+  - httpu
+  - scpd
+  - soap
+  - ssdp
+- name: github.com/inconshreveable/log15
+  version: 0e4443bab83dd915f5a6d36d8c650b180744b8ce
+  subpackages:
+  - term
+- name: github.com/jackpal/go-nat-pmp
+  version: 28a68d0c24adce1da43f8df6a57340909ecd7fdd
+- name: github.com/mattn/go-colorable
+  version: 6c0fd4aa6ec5818d5e3ea9e03ae436972a6c5a9a
+- name: github.com/mattn/go-isatty
+  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+- name: github.com/rcrowley/go-metrics
+  version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+  subpackages:
+  - exp
+- name: github.com/rs/cors
+  version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
+- name: github.com/syndtr/goleveldb
+  version: b89cc31ef7977104127d34c1bd31ebd1a9db2199
+  subpackages:
+  - leveldb
+  - leveldb/cache
+  - leveldb/comparer
+  - leveldb/errors
+  - leveldb/filter
+  - leveldb/iterator
+  - leveldb/journal
+  - leveldb/memdb
+  - leveldb/opt
+  - leveldb/storage
+  - leveldb/table
+  - leveldb/util
+- name: golang.org/x/net
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  subpackages:
+  - html
+  - html/atom
+  - html/charset
+  - websocket
+- name: golang.org/x/sys
+  version: b0e0dd72976dc482b6cb37c5640440f876ac1907
+  subpackages:
+  - unix
+- name: golang.org/x/text
+  version: 3bd178b88a8180be2df394a1fbb81313916f0e7b
+  subpackages:
+  - encoding
+  - encoding/charmap
+  - encoding/htmlindex
+  - encoding/internal
+  - encoding/internal/identifier
+  - encoding/japanese
+  - encoding/korean
+  - encoding/simplifiedchinese
+  - encoding/traditionalchinese
+  - encoding/unicode
+  - internal/tag
+  - internal/utf8internal
+  - language
+  - runes
+  - transform
+- name: gopkg.in/fatih/set.v0
+  version: 27c40922c40b43fe04554d8223a402af3ea333f3
+- name: gopkg.in/karalabe/cookiejar.v2
+  version: 8dcd6a7f4951f6ff3ee9cbb919a06d8925822e57
+  subpackages:
+  - collections/prque
+- name: gopkg.in/natefinch/npipe.v2
+  version: c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6
+testImports: []
