@@ -1,0 +1,23 @@
+language: go
+go_import_path: github.com/getamis/eth-client
+sudo: false
+os: 
+  - linux
+  - osx
+go:
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
+
+install:
+  - go get github.com/Masterminds/glide
+
+script:
+  go test -v $(glide novendor | grep -v "\.\/tests\/\.\.\.")
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/250f433972aaec17b964
+    on_success: always
+    on_failure: always
