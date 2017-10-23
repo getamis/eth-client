@@ -24,27 +24,31 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 type client struct {
 	*ethclient.Client
-	c *rpc.Client
+	rpc *ethrpc.Client
 }
 
 func Dial(rawurl string) (Client, error) {
-	c, err := rpc.Dial(rawurl)
+	c, err := ethrpc.Dial(rawurl)
 	if err != nil {
 		return nil, err
 	}
+	return NewClient(c), nil
+}
+
+func NewClient(rpc *ethrpc.Client) Client {
 	return &client{
-		Client: ethclient.NewClient(c),
-		c:      c,
-	}, nil
+		Client: ethclient.NewClient(rpc),
+		rpc:    rpc,
+	}
 }
 
 func (c *client) Close() {
-	c.c.Close()
+	c.rpc.Close()
 }
 
 // ----------------------------------------------------------------------------
@@ -60,7 +64,7 @@ func (c *client) SendRawTransaction(ctx context.Context, tx *types.Transaction) 
 
 func (c *client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var r string
-	err := c.c.CallContext(ctx, &r, "eth_blockNumber")
+	err := c.rpc.CallContext(ctx, &r, "eth_blockNumber")
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +79,7 @@ func (c *client) AddPeer(ctx context.Context, nodeURL string) error {
 	var r bool
 	// TODO: Result needs to be verified
 	// The response data type are bytes, but we cannot parse...
-	err := c.c.CallContext(ctx, &r, "admin_addPeer", nodeURL)
+	err := c.rpc.CallContext(ctx, &r, "admin_addPeer", nodeURL)
 	if err != nil {
 		return err
 	}
@@ -85,7 +89,7 @@ func (c *client) AddPeer(ctx context.Context, nodeURL string) error {
 func (c *client) AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 	var r []*p2p.PeerInfo
 	// The response data type are bytes, but we cannot parse...
-	err := c.c.CallContext(ctx, &r, "admin_peers")
+	err := c.rpc.CallContext(ctx, &r, "admin_peers")
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +98,7 @@ func (c *client) AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 
 func (c *client) NodeInfo(ctx context.Context) (*p2p.PeerInfo, error) {
 	var r *p2p.PeerInfo
-	err := c.c.CallContext(ctx, &r, "admin_nodeInfo")
+	err := c.rpc.CallContext(ctx, &r, "admin_nodeInfo")
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +112,7 @@ func (c *client) StartMining(ctx context.Context) error {
 	var r []byte
 	// TODO: Result needs to be verified
 	// The response data type are bytes, but we cannot parse...
-	err := c.c.CallContext(ctx, &r, "miner_start", nil)
+	err := c.rpc.CallContext(ctx, &r, "miner_start", nil)
 	if err != nil {
 		return err
 	}
@@ -116,7 +120,7 @@ func (c *client) StartMining(ctx context.Context) error {
 }
 
 func (c *client) StopMining(ctx context.Context) error {
-	err := c.c.CallContext(ctx, nil, "miner_stop", nil)
+	err := c.rpc.CallContext(ctx, nil, "miner_stop", nil)
 	if err != nil {
 		return err
 	}
