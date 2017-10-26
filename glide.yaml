@@ -1,0 +1,14 @@
+package: github.com/getamis/eth-client
+import:
+- package: github.com/ethereum/go-ethereum
+  version: istanbul/develop
+  repo: git@github.com:getamis/go-ethereum
+  subpackages:
+  - common
+  - common/hexutil
+  - core/types
+  - ethclient
+  - p2p
+  - rpc
+- package: github.com/inconshreveable/log15
+  version: ^2.12.0
