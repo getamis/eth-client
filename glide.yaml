@@ -1,8 +1,8 @@
 package: github.com/getamis/eth-client
 import:
 - package: github.com/ethereum/go-ethereum
-  version: istanbul/develop
-  repo: git@github.com:getamis/go-ethereum
+  version: v1.7.2
+  repo: git@github.com:ethereum/go-ethereum
   subpackages:
   - common
   - common/hexutil

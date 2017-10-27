@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -52,12 +51,12 @@ func TestProtocolCompatibility(t *testing.T) {
 		{61, downloader.FastSync, false}, {62, downloader.FastSync, false}, {63, downloader.FastSync, true},
 	}
 	// Make sure anything we screw up is restored
-	backup := consensus.EthProtocol.Versions
-	defer func() { consensus.EthProtocol.Versions = backup }()
+	backup := ProtocolVersions
+	defer func() { ProtocolVersions = backup }()
 
 	// Try all available compatibility configs and check for errors
 	for i, tt := range tests {
-		consensus.EthProtocol.Versions = []uint{tt.version}
+		ProtocolVersions = []uint{tt.version}
 
 		pm, err := newTestProtocolManager(tt.mode, 0, nil, nil)
 		if pm != nil {
@@ -485,7 +484,7 @@ func testDAOChallenge(t *testing.T, localForked, remoteForked bool, timeout bool
 	defer pm.Stop()
 
 	// Connect a new peer and check that we receive the DAO challenge
-	peer, _ := newTestPeer("peer", consensus.Eth63, pm, true)
+	peer, _ := newTestPeer("peer", eth63, pm, true)
 	defer peer.close()
 
 	challenge := &getBlockHeadersData{
