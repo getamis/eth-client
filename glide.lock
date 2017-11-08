@@ -1,5 +1,5 @@
-hash: b386d75cba054bd7591b1c70575f30b3a0dffbca669ae96fd3dbafbaf780b9e8
-updated: 2017-10-19T16:53:25.283530349+08:00
+hash: d056bc8caf2b8d1425ebecfd1e379ce7d528d7d8f585a4dd81b74e4a86d4222c
+updated: 2017-10-27T10:52:43.050057963+08:00
 imports:
 - name: github.com/aristanetworks/goarista
   version: 8e44bec0a94d7c1f0cdf28ed5215e5cfab441ad0
@@ -10,8 +10,8 @@ imports:
   subpackages:
   - btcec
 - name: github.com/ethereum/go-ethereum
-  version: cfc586a2d9a95981f7f5d848311d9e2d1f83b274
-  repo: git@github.com:getamis/go-ethereum
+  version: 1db4ecdc0b9e828ff65777fb466fc7c1d04e0de9
+  repo: git@github.com:ethereum/go-ethereum
   subpackages:
   - common
   - common/hexutil
@@ -49,9 +49,7 @@ imports:
   - soap
   - ssdp
 - name: github.com/inconshreveable/log15
-  version: 0e4443bab83dd915f5a6d36d8c650b180744b8ce
-  subpackages:
-  - term
+  version: 0decfc6c20d9ca0ad143b0e89dcaa20f810b4fb3
 - name: github.com/jackpal/go-nat-pmp
   version: 28a68d0c24adce1da43f8df6a57340909ecd7fdd
 - name: github.com/mattn/go-colorable
