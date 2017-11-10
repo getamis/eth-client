@@ -34,6 +34,7 @@ func init() {
 	)
 }
 
+// New returns a new logger with the given context.
 func New(ctx ...interface{}) log15.Logger {
 	return defaultLogger.New(ctx...)
 }
