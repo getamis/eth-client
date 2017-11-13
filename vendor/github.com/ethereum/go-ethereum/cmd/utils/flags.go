@@ -31,6 +31,8 @@ import (
 	"github.com/ethereum/go-ethereum/accounts"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/consensus/clique"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/state"
@@ -124,7 +126,7 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Network identifier (integer, 1=Frontier, 2=Morden (disused), 3=Ropsten, 4=Rinkeby, 5=Ottoman)",
+		Usage: "Network identifier (integer, 1=Frontier, 2=Morden (disused), 3=Ropsten, 4=Rinkeby)",
 		Value: eth.DefaultConfig.NetworkId,
 	}
 	TestnetFlag = cli.BoolFlag{
@@ -134,10 +136,6 @@ var (
 	RinkebyFlag = cli.BoolFlag{
 		Name:  "rinkeby",
 		Usage: "Rinkeby network: pre-configured proof-of-authority test network",
-	}
-	OttomanFlag = cli.BoolFlag{
-		Name:  "ottoman",
-		Usage: "Ottoman network: pre-configured istanbul bft test network",
 	}
 	DevModeFlag = cli.BoolFlag{
 		Name:  "dev",
@@ -489,23 +487,6 @@ var (
 		Usage: "Minimum POW accepted",
 		Value: whisper.DefaultMinimumPoW,
 	}
-
-	// Istanbul settings
-	IstanbulRequestTimeoutFlag = cli.Uint64Flag{
-		Name:  "istanbul.requesttimeout",
-		Usage: "Timeout for each Istanbul round in milliseconds",
-		Value: eth.DefaultConfig.Istanbul.RequestTimeout,
-	}
-	IstanbulBlockPeriodFlag = cli.Uint64Flag{
-		Name:  "istanbul.blockperiod",
-		Usage: "Default minimum difference between two consecutive block's timestamps in seconds",
-		Value: eth.DefaultConfig.Istanbul.BlockPeriod,
-	}
-	IstanbulBlockPauseTimeFlag = cli.Uint64Flag{
-		Name:  "istanbul.blockpausetime",
-		Usage: "Pause time when zero tx in previous block, values should be larger than istanbul.blockperiod",
-		Value: eth.DefaultConfig.Istanbul.BlockPauseTime,
-	}
 )
 
 // MakeDataDir retrieves the currently requested data directory, terminating
@@ -518,9 +499,6 @@ func MakeDataDir(ctx *cli.Context) string {
 		}
 		if ctx.GlobalBool(RinkebyFlag.Name) {
 			return filepath.Join(path, "rinkeby")
-		}
-		if ctx.GlobalBool(OttomanFlag.Name) {
-			return filepath.Join(path, "ottoman")
 		}
 		return path
 	}
@@ -576,8 +554,6 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		urls = params.TestnetBootnodes
 	case ctx.GlobalBool(RinkebyFlag.Name):
 		urls = params.RinkebyBootnodes
-	case ctx.GlobalBool(OttomanFlag.Name):
-		urls = params.OttomanBootnodes
 	}
 
 	cfg.BootstrapNodes = make([]*discover.Node, 0, len(urls))
@@ -847,8 +823,6 @@ func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
 	case ctx.GlobalBool(RinkebyFlag.Name):
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "rinkeby")
-	case ctx.GlobalBool(OttomanFlag.Name):
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "ottoman")
 	}
 
 	if ctx.GlobalIsSet(KeyStoreDirFlag.Name) {
@@ -925,18 +899,6 @@ func setEthash(ctx *cli.Context, cfg *eth.Config) {
 	}
 }
 
-func setIstanbul(ctx *cli.Context, cfg *eth.Config) {
-	if ctx.GlobalIsSet(IstanbulRequestTimeoutFlag.Name) {
-		cfg.Istanbul.RequestTimeout = ctx.GlobalUint64(IstanbulRequestTimeoutFlag.Name)
-	}
-	if ctx.GlobalIsSet(IstanbulBlockPeriodFlag.Name) {
-		cfg.Istanbul.BlockPeriod = ctx.GlobalUint64(IstanbulBlockPeriodFlag.Name)
-	}
-	if ctx.GlobalIsSet(IstanbulBlockPauseTimeFlag.Name) {
-		cfg.Istanbul.BlockPauseTime = ctx.GlobalUint64(IstanbulBlockPauseTimeFlag.Name)
-	}
-}
-
 func checkExclusive(ctx *cli.Context, flags ...cli.Flag) {
 	set := make([]string, 0, 1)
 	for _, flag := range flags {
@@ -962,7 +924,7 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node, cfg *whisper.Config) {
 // SetEthConfig applies eth-related command line flags to the config.
 func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	// Avoid conflicting network flags
-	checkExclusive(ctx, DevModeFlag, TestnetFlag, RinkebyFlag, OttomanFlag)
+	checkExclusive(ctx, DevModeFlag, TestnetFlag, RinkebyFlag)
 	checkExclusive(ctx, FastSyncFlag, LightModeFlag, SyncModeFlag)
 
 	ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
@@ -970,7 +932,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 	setGPO(ctx, &cfg.GPO)
 	setTxPool(ctx, &cfg.TxPool)
 	setEthash(ctx, cfg)
-	setIstanbul(ctx, cfg)
 
 	switch {
 	case ctx.GlobalIsSet(SyncModeFlag.Name):
@@ -1024,11 +985,6 @@ func SetEthConfig(ctx *cli.Context, stack *node.Node, cfg *eth.Config) {
 			cfg.NetworkId = 4
 		}
 		cfg.Genesis = core.DefaultRinkebyGenesisBlock()
-	case ctx.GlobalBool(OttomanFlag.Name):
-		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
-			cfg.NetworkId = 5
-		}
-		cfg.Genesis = core.DefaultOttomanGenesisBlock()
 	case ctx.GlobalBool(DevModeFlag.Name):
 		cfg.Genesis = core.DevGenesisBlock()
 		if !ctx.GlobalIsSet(GasPriceFlag.Name) {
@@ -1121,8 +1077,6 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 		genesis = core.DefaultTestnetGenesisBlock()
 	case ctx.GlobalBool(RinkebyFlag.Name):
 		genesis = core.DefaultRinkebyGenesisBlock()
-	case ctx.GlobalBool(OttomanFlag.Name):
-		genesis = core.DefaultOttomanGenesisBlock()
 	case ctx.GlobalBool(DevModeFlag.Name):
 		genesis = core.DevGenesisBlock()
 	}
@@ -1134,16 +1088,21 @@ func MakeChain(ctx *cli.Context, stack *node.Node) (chain *core.BlockChain, chai
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 
-	engine := ethash.NewFaker()
-	if !ctx.GlobalBool(FakePoWFlag.Name) {
-		engine = ethash.New(
-			stack.ResolvePath(eth.DefaultConfig.EthashCacheDir), eth.DefaultConfig.EthashCachesInMem, eth.DefaultConfig.EthashCachesOnDisk,
-			stack.ResolvePath(eth.DefaultConfig.EthashDatasetDir), eth.DefaultConfig.EthashDatasetsInMem, eth.DefaultConfig.EthashDatasetsOnDisk,
-		)
-	}
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
 	if err != nil {
 		Fatalf("%v", err)
+	}
+	var engine consensus.Engine
+	if config.Clique != nil {
+		engine = clique.New(config.Clique, chainDb)
+	} else {
+		engine = ethash.NewFaker()
+		if !ctx.GlobalBool(FakePoWFlag.Name) {
+			engine = ethash.New(
+				stack.ResolvePath(eth.DefaultConfig.EthashCacheDir), eth.DefaultConfig.EthashCachesInMem, eth.DefaultConfig.EthashCachesOnDisk,
+				stack.ResolvePath(eth.DefaultConfig.EthashDatasetDir), eth.DefaultConfig.EthashDatasetsInMem, eth.DefaultConfig.EthashDatasetsOnDisk,
+			)
+		}
 	}
 	vmcfg := vm.Config{EnablePreimageRecording: ctx.GlobalBool(VMEnableDebugFlag.Name)}
 	chain, err = core.NewBlockChain(chainDb, config, engine, vmcfg)

@@ -18,7 +18,6 @@ package params
 
 import (
 	"fmt"
-	"math"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -40,7 +39,7 @@ var (
 		EIP150Hash:     common.HexToHash("0x2086799aeebeae135c246c65021c82b4e15a2c451340993aacfd2751886514f0"),
 		EIP155Block:    big.NewInt(2675000),
 		EIP158Block:    big.NewInt(2675000),
-		ByzantiumBlock: big.NewInt(math.MaxInt64), // Don't enable yet
+		ByzantiumBlock: big.NewInt(4370000),
 
 		Ethash: new(EthashConfig),
 	}
@@ -70,29 +69,11 @@ var (
 		EIP150Hash:     common.HexToHash("0x9b095b36c15eaf13044373aef8ee0bd3a382a5abb92e402afa44b8249c3a90e9"),
 		EIP155Block:    big.NewInt(3),
 		EIP158Block:    big.NewInt(3),
-		ByzantiumBlock: big.NewInt(math.MaxInt64), // Don't enable yet
+		ByzantiumBlock: big.NewInt(1035301),
 
 		Clique: &CliqueConfig{
 			Period: 15,
 			Epoch:  30000,
-		},
-	}
-
-	// OttomanChainConfig contains the chain parameters to run a node on the Ottoman test network.
-	OttomanChainConfig = &ChainConfig{
-		ChainId:        big.NewInt(5),
-		HomesteadBlock: big.NewInt(1),
-		DAOForkBlock:   nil,
-		DAOForkSupport: true,
-		EIP150Block:    big.NewInt(2),
-		EIP150Hash:     common.HexToHash("0x9b095b36c15eaf13044373aef8ee0bd3a382a5abb92e402afa44b8249c3a90e9"),
-		EIP155Block:    big.NewInt(3),
-		EIP158Block:    big.NewInt(3),
-		ByzantiumBlock: big.NewInt(math.MaxInt64), // Don't enable yet
-
-		Istanbul: &IstanbulConfig{
-			Epoch:          30000,
-			ProposerPolicy: 0,
 		},
 	}
 
@@ -104,8 +85,8 @@ var (
 	// means that all fields must be set at all times. This forces
 	// anyone adding flags to the config to also have to set these
 	// fields.
-	AllProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil, nil}
-	TestChainConfig    = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil, nil}
+	AllProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil}
+	TestChainConfig    = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), new(EthashConfig), nil}
 	TestRules          = TestChainConfig.Rules(new(big.Int))
 )
 
@@ -118,22 +99,22 @@ type ChainConfig struct {
 	ChainId *big.Int `json:"chainId"` // Chain id identifies the current chain and is used for replay protection
 
 	HomesteadBlock *big.Int `json:"homesteadBlock,omitempty"` // Homestead switch block (nil = no fork, 0 = already homestead)
+
 	DAOForkBlock   *big.Int `json:"daoForkBlock,omitempty"`   // TheDAO hard-fork switch block (nil = no fork)
 	DAOForkSupport bool     `json:"daoForkSupport,omitempty"` // Whether the nodes supports or opposes the DAO hard-fork
 
 	// EIP150 implements the Gas price changes (https://github.com/ethereum/EIPs/issues/150)
 	EIP150Block *big.Int    `json:"eip150Block,omitempty"` // EIP150 HF block (nil = no fork)
-	EIP150Hash  common.Hash `json:"eip150Hash,omitempty"`  // EIP150 HF hash (fast sync aid)
+	EIP150Hash  common.Hash `json:"eip150Hash,omitempty"`  // EIP150 HF hash (needed for header only clients as only gas pricing changed)
 
 	EIP155Block *big.Int `json:"eip155Block,omitempty"` // EIP155 HF block
 	EIP158Block *big.Int `json:"eip158Block,omitempty"` // EIP158 HF block
 
-	ByzantiumBlock *big.Int `json:"byzantiumBlock,omitempty"` // Byzantium switch block (nil = no fork, 0 = alraedy on homestead)
+	ByzantiumBlock *big.Int `json:"byzantiumBlock,omitempty"` // Byzantium switch block (nil = no fork, 0 = already on byzantium)
 
 	// Various consensus engines
-	Ethash   *EthashConfig   `json:"ethash,omitempty"`
-	Clique   *CliqueConfig   `json:"clique,omitempty"`
-	Istanbul *IstanbulConfig `json:"istanbul,omitempty"`
+	Ethash *EthashConfig `json:"ethash,omitempty"`
+	Clique *CliqueConfig `json:"clique,omitempty"`
 }
 
 // EthashConfig is the consensus engine configs for proof-of-work based sealing.
@@ -155,17 +136,6 @@ func (c *CliqueConfig) String() string {
 	return "clique"
 }
 
-// IstanbulConfig is the consensus engine configs for Istanbul based sealing.
-type IstanbulConfig struct {
-	Epoch          uint64 `json:"epoch"`  // Epoch length to reset votes and checkpoint
-	ProposerPolicy uint64 `json:"policy"` // The policy for proposer selection
-}
-
-// String implements the stringer interface, returning the consensus engine details.
-func (c *IstanbulConfig) String() string {
-	return "istanbul"
-}
-
 // String implements the fmt.Stringer interface.
 func (c *ChainConfig) String() string {
 	var engine interface{}
@@ -174,8 +144,6 @@ func (c *ChainConfig) String() string {
 		engine = c.Ethash
 	case c.Clique != nil:
 		engine = c.Clique
-	case c.Istanbul != nil:
-		engine = c.Istanbul
 	default:
 		engine = "unknown"
 	}

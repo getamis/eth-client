@@ -30,7 +30,6 @@ var Modules = map[string]string{
 	"shh":        Shh_JS,
 	"swarmfs":    SWARMFS_JS,
 	"txpool":     TxPool_JS,
-	"istanbul":   Istanbul_JS,
 }
 
 const Chequebook_JS = `
@@ -529,109 +528,6 @@ const Shh_JS = `
 web3._extend({
 	property: 'shh',
 	methods: [
-		new web3._extend.Method({
-			name: 'setMaxMessageLength',
-			call: 'shh_setMaxMessageLength',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'setMinimumPoW',
-			call: 'shh_setMinimumPoW',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'markTrustedPeer',
-			call: 'shh_markTrustedPeer',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'hasKeyPair',
-			call: 'shh_hasKeyPair',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'deleteKeyPair',
-			call: 'shh_deleteKeyPair',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'newKeyPair',
-			call: 'shh_newKeyPair'
-		}),
-		new web3._extend.Method({
-			name: 'getPublicKey',
-			call: 'shh_getPublicKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'getPrivateKey',
-			call: 'shh_getPrivateKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'newSymKey',
-			call: 'shh_newSymKey',
-		}),
-		new web3._extend.Method({
-			name: 'addSymKey',
-			call: 'shh_addSymKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'generateSymKeyFromPassword',
-			call: 'shh_generateSymKeyFromPassword',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'hasSymKey',
-			call: 'shh_hasSymKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'getSymKey',
-			call: 'shh_getSymKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'deleteSymKey',
-			call: 'shh_deleteSymKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'subscribe',
-			call: 'shh_subscribe',
-			params: 2
-		}),
-		new web3._extend.Method({
-			name: 'unsubscribe',
-			call: 'shh_unsubscribe',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'post',
-			call: 'shh_post',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'publicKey',
-			call: 'shh_getPublicKey',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'getFilterMessages',
-			call: 'shh_getFilterMessages',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'deleteMessageFilter',
-			call: 'shh_deleteMessageFilter',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'newMessageFilter',
-			call: 'shh_newMessageFilter',
-			params: 1
-		}),
 	],
 	properties:
 	[
@@ -694,54 +590,6 @@ web3._extend({
 				status.queued = web3._extend.utils.toDecimal(status.queued);
 				return status;
 			}
-		}),
-	]
-});
-`
-
-const Istanbul_JS = `
-web3._extend({
-	property: 'istanbul',
-	methods:
-	[
-		new web3._extend.Method({
-			name: 'getSnapshot',
-			call: 'istanbul_getSnapshot',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getSnapshotAtHash',
-			call: 'istanbul_getSnapshotAtHash',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'getValidators',
-			call: 'istanbul_getValidators',
-			params: 1,
-			inputFormatter: [null]
-		}),
-		new web3._extend.Method({
-			name: 'getValidatorsAtHash',
-			call: 'istanbul_getValidatorsAtHash',
-			params: 1
-		}),
-		new web3._extend.Method({
-			name: 'propose',
-			call: 'istanbul_propose',
-			params: 2
-		}),
-		new web3._extend.Method({
-			name: 'discard',
-			call: 'istanbul_discard',
-			params: 1
-		})
-	],
-	properties:
-	[
-		new web3._extend.Property({
-			name: 'candidates',
-			getter: 'istanbul_candidates'
 		}),
 	]
 });

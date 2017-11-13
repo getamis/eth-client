@@ -191,6 +191,6 @@ script:
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/a513fc5759b168761b82
+      - https://webhooks.gitter.im/e/e09ccdce1048c5e03445
     on_success: change
     on_failure: always
