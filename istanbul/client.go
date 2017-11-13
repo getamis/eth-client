@@ -29,11 +29,13 @@ import (
 	ethClient "github.com/getamis/eth-client/client"
 )
 
+// client defines typed wrappers for the eth-client.
 type client struct {
 	ethClient.Client
 	rpc *rpc.Client
 }
 
+// Dial connects a client to the given URL.
 func Dial(rawurl string) (Client, error) {
 	rc, err := rpc.Dial(rawurl)
 	if err != nil {
@@ -48,6 +50,7 @@ func Dial(rawurl string) (Client, error) {
 	return c, nil
 }
 
+// Propose injects a new authorization candidate that the validator will attempt to push through.
 func (c *client) ProposeValidator(ctx context.Context, address common.Address, auth bool) error {
 	var r []byte
 	err := c.rpc.CallContext(ctx, &r, "istanbul_propose", address, auth)
@@ -71,6 +74,7 @@ func (addrs addresses) Swap(i, j int) {
 	addrs[i], addrs[j] = addrs[j], addrs[i]
 }
 
+// GetValidators retrieves the list of authorized validators at the specified block.
 func (c *client) GetValidators(ctx context.Context, blockNumbers *big.Int) ([]common.Address, error) {
 	var r []common.Address
 	err := c.rpc.CallContext(ctx, &r, "istanbul_getValidators", toNumArg(blockNumbers))

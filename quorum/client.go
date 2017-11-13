@@ -26,11 +26,13 @@ import (
 	ethClient "github.com/getamis/eth-client/client"
 )
 
+// client defines typed wrappers for the eth-client.
 type client struct {
 	ethClient.Client
 	rpc *rpc.Client
 }
 
+// Dial connects a client to the given URL.
 func Dial(rawurl string) (Client, error) {
 	rc, err := rpc.Dial(rawurl)
 	if err != nil {
@@ -45,6 +47,7 @@ func Dial(rawurl string) (Client, error) {
 	return c, nil
 }
 
+// CreateContract creates a contract with the given parameters.
 func (c *client) CreateContract(ctx context.Context, from common.Address, bytecode string, gas *big.Int) (txHash string, err error) {
 	var hex hexutil.Bytes
 	arg := map[string]interface{}{
@@ -58,6 +61,8 @@ func (c *client) CreateContract(ctx context.Context, from common.Address, byteco
 	return
 }
 
+// CreatePrivateContract creates a private contract with the given parameters. The related information can refer
+// to https://github.com/jpmorganchase/quorum/wiki/Using-Quorum#creating-private-transactionscontracts.
 func (c *client) CreatePrivateContract(ctx context.Context, from common.Address, bytecode string, gas *big.Int, privateFor []string) (txHash string, err error) {
 	var hex hexutil.Bytes
 	arg := map[string]interface{}{

@@ -27,11 +27,13 @@ import (
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
+// client defines typed wrappers for the Ethereum RPC API.
 type client struct {
 	*ethclient.Client
 	rpc *ethrpc.Client
 }
 
+// Dial connects a client to the given URL.
 func Dial(rawurl string) (Client, error) {
 	c, err := ethrpc.Dial(rawurl)
 	if err != nil {
@@ -40,6 +42,7 @@ func Dial(rawurl string) (Client, error) {
 	return NewClient(c), nil
 }
 
+// NewClient creates a client that uses the given RPC client.
 func NewClient(rpc *ethrpc.Client) Client {
 	return &client{
 		Client: ethclient.NewClient(rpc),
@@ -47,6 +50,7 @@ func NewClient(rpc *ethrpc.Client) Client {
 	}
 }
 
+// Close closes an existing RPC connection.
 func (c *client) Close() {
 	c.rpc.Close()
 }
@@ -62,6 +66,7 @@ func (c *client) SendRawTransaction(ctx context.Context, tx *types.Transaction) 
 	return c.SendTransaction(ctx, tx)
 }
 
+// BlockNumber returns the current block number.
 func (c *client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	var r string
 	err := c.rpc.CallContext(ctx, &r, "eth_blockNumber")
@@ -75,6 +80,7 @@ func (c *client) BlockNumber(ctx context.Context) (*big.Int, error) {
 // ----------------------------------------------------------------------------
 // admin
 
+// AddPeer connects to the given nodeURL.
 func (c *client) AddPeer(ctx context.Context, nodeURL string) error {
 	var r bool
 	// TODO: Result needs to be verified
@@ -86,6 +92,7 @@ func (c *client) AddPeer(ctx context.Context, nodeURL string) error {
 	return err
 }
 
+// AdminPeers returns the number of connected peers.
 func (c *client) AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 	var r []*p2p.PeerInfo
 	// The response data type are bytes, but we cannot parse...
@@ -96,6 +103,7 @@ func (c *client) AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
 	return r, err
 }
 
+// NodeInfo gathers and returns a collection of metadata known about the host.
 func (c *client) NodeInfo(ctx context.Context) (*p2p.PeerInfo, error) {
 	var r *p2p.PeerInfo
 	err := c.rpc.CallContext(ctx, &r, "admin_nodeInfo")
@@ -108,6 +116,7 @@ func (c *client) NodeInfo(ctx context.Context) (*p2p.PeerInfo, error) {
 // ----------------------------------------------------------------------------
 // miner
 
+// StartMining starts mining operation.
 func (c *client) StartMining(ctx context.Context) error {
 	var r []byte
 	// TODO: Result needs to be verified
@@ -119,6 +128,7 @@ func (c *client) StartMining(ctx context.Context) error {
 	return err
 }
 
+// StopMining stops mining.
 func (c *client) StopMining(ctx context.Context) error {
 	err := c.rpc.CallContext(ctx, nil, "miner_stop", nil)
 	if err != nil {
