@@ -34,9 +34,8 @@ type Client interface {
 	SendRawTransaction(ctx context.Context, tx *types.Transaction) error
 
 	// admin
-	AddPeer(ctx context.Context, nodeURL string) error
-	AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error)
-	NodeInfo(ctx context.Context) (*p2p.PeerInfo, error)
+	PrivateAdmin
+	PublicAdmin
 
 	// miner
 	StartMining(ctx context.Context) error
@@ -70,4 +69,21 @@ type Client interface {
 	SuggestGasPrice(ctx context.Context) (*big.Int, error)
 	EstimateGas(ctx context.Context, msg ethereum.CallMsg) (*big.Int, error)
 	SendTransaction(ctx context.Context, tx *types.Transaction) error
+}
+
+type PrivateAdmin interface {
+	AddPeer(ctx context.Context, nodeURL string) (bool, error)
+	RemovePeer(ctx context.Context, nodeURL string) (bool, error)
+	ImportChain(ctx context.Context, file string) (bool, error)
+	ExportChain(ctx context.Context, file string) (bool, error)
+	StartRPC(ctx context.Context, host *string, port *int, cors *string, apis *string) (bool, error)
+	StopRPC(ctx context.Context) (bool, error)
+	StartWS(ctx context.Context, host *string, port *int, allowedOrigins *string, apis *string) (bool, error)
+	StopWS(ctx context.Context) (bool, error)
+}
+
+type PublicAdmin interface {
+	Peers(ctx context.Context) ([]*p2p.PeerInfo, error)
+	NodeInfo(ctx context.Context) (*p2p.NodeInfo, error)
+	Datadir(ctx context.Context) (string, error)
 }
