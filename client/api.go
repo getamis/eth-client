@@ -30,6 +30,7 @@ type Client interface {
 	Close()
 
 	Admin() rpcapi.Admin
+	Eth() rpcapi.Eth
 
 	// eth
 	BlockNumber(ctx context.Context) (*big.Int, error)

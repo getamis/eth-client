@@ -32,6 +32,7 @@ type client struct {
 	*ethclient.Client
 	rpc   *ethrpc.Client
 	admin rpcapi.Admin
+	eth   rpcapi.Eth
 }
 
 // Dial connects a client to the given URL.
@@ -49,7 +50,12 @@ func NewClient(rpc *ethrpc.Client) Client {
 		Client: ethclient.NewClient(rpc),
 		rpc:    rpc,
 		admin:  rpcapi.NewAdmin(rpc),
+		eth:    rpcapi.NewEth(rpc),
 	}
+}
+
+func (c *client) Eth() rpcapi.Eth {
+	return c.eth
 }
 
 func (c *client) Admin() rpcapi.Admin {
