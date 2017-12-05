@@ -23,20 +23,17 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/p2p"
+	rpcapi "github.com/getamis/eth-client/client/rpc"
 )
 
 type Client interface {
 	Close()
 
+	Admin() rpcapi.Admin
+
 	// eth
 	BlockNumber(ctx context.Context) (*big.Int, error)
 	SendRawTransaction(ctx context.Context, tx *types.Transaction) error
-
-	// admin
-	AddPeer(ctx context.Context, nodeURL string) error
-	AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error)
-	NodeInfo(ctx context.Context) (*p2p.PeerInfo, error)
 
 	// miner
 	StartMining(ctx context.Context) error
