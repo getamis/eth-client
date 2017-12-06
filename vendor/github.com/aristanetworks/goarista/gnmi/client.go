@@ -1,4 +1,4 @@
-// Copyright (C) 2017  Arista Networks, Inc.
+// Copyright (c) 2017 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -9,13 +9,17 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"io/ioutil"
-
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/metadata"
+	"strings"
 
 	"github.com/aristanetworks/glog"
 	pb "github.com/openconfig/gnmi/proto/gnmi"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/metadata"
+)
+
+const (
+	defaultPort = "6042"
 )
 
 // Config is the gnmi.Client config
@@ -62,6 +66,9 @@ func Dial(cfg *Config) pb.GNMIClient {
 		opts = append(opts, grpc.WithInsecure())
 	}
 
+	if !strings.ContainsRune(cfg.Addr, ':') {
+		cfg.Addr += ":" + defaultPort
+	}
 	conn, err := grpc.Dial(cfg.Addr, opts...)
 	if err != nil {
 		glog.Fatalf("Failed to dial: %s", err)
@@ -74,7 +81,7 @@ func Dial(cfg *Config) pb.GNMIClient {
 // metadata if they are set in cfg.
 func NewContext(ctx context.Context, cfg *Config) context.Context {
 	if cfg.Username != "" {
-		ctx = metadata.NewContext(ctx, metadata.Pairs(
+		ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(
 			"username", cfg.Username,
 			"password", cfg.Password))
 	}
@@ -87,11 +94,11 @@ func NewGetRequest(paths [][]string) (*pb.GetRequest, error) {
 		Path: make([]*pb.Path, len(paths)),
 	}
 	for i, p := range paths {
-		elm, err := ParseGNMIElements(p)
+		gnmiPath, err := ParseGNMIElements(p)
 		if err != nil {
 			return nil, err
 		}
-		req.Path[i] = &pb.Path{Elem: elm}
+		req.Path[i] = gnmiPath
 	}
 	return req, nil
 }
@@ -102,11 +109,11 @@ func NewSubscribeRequest(paths [][]string) (*pb.SubscribeRequest, error) {
 		Subscription: make([]*pb.Subscription, len(paths)),
 	}
 	for i, p := range paths {
-		elm, err := ParseGNMIElements(p)
+		gnmiPath, err := ParseGNMIElements(p)
 		if err != nil {
 			return nil, err
 		}
-		subList.Subscription[i] = &pb.Subscription{Path: &pb.Path{Elem: elm}}
+		subList.Subscription[i] = &pb.Subscription{Path: gnmiPath}
 	}
 	return &pb.SubscribeRequest{
 		Request: &pb.SubscribeRequest_Subscribe{Subscribe: subList}}, nil

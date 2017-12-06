@@ -1,4 +1,4 @@
-// Copyright (C) 2016  Arista Networks, Inc.
+// Copyright (c) 2016 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -15,8 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/aristanetworks/glog"
 	"github.com/aristanetworks/goarista/openconfig/client"
+
+	"github.com/aristanetworks/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/openconfig/reference/rpc/openconfig"
 )
@@ -182,6 +183,12 @@ func parseValue(update *openconfig.Update) []interface{} {
 			value[i] = num
 		}
 		return value
+	case map[string]interface{}:
+		// Special case for simple value types that just have a "value"
+		// attribute (common case).
+		if val, ok := value["value"].(json.Number); ok && len(value) == 1 {
+			return []interface{}{parseNumber(val, update)}
+		}
 	default:
 		glog.V(9).Infof("Ignoring non-numeric or non-numeric slice value in %s", update)
 	}

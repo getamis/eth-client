@@ -12,3 +12,7 @@ import:
   - rpc
 - package: github.com/inconshreveable/log15
   version: ^2.12.0
+- package: github.com/golang/mock
+  version: ^1.0.0
+  subpackages:
+  - gomock

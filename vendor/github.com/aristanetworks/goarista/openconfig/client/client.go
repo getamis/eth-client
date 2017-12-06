@@ -1,4 +1,4 @@
-// Copyright (C) 2016  Arista Networks, Inc.
+// Copyright (c) 2016 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -45,7 +45,7 @@ func New(username, password, addr string, opts []grpc.DialOption) *Client {
 
 	ctx := context.Background()
 	if username != "" {
-		ctx = metadata.NewContext(ctx, metadata.Pairs(
+		ctx = metadata.NewOutgoingContext(ctx, metadata.Pairs(
 			"username", username,
 			"password", password))
 	}

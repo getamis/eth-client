@@ -1,8 +1,8 @@
-// Copyright (c) 2013-2016 The btcsuite developers
+// Copyright (c) 2013-2017 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
-package blockchain_test
+package blockchain
 
 import (
 	"math"
@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/btcsuite/btcd/blockchain"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
@@ -20,15 +19,15 @@ import (
 // TestSequenceLocksActive tests the SequenceLockActive function to ensure it
 // works as expected in all possible combinations/scenarios.
 func TestSequenceLocksActive(t *testing.T) {
-	seqLock := func(h int32, s int64) *blockchain.SequenceLock {
-		return &blockchain.SequenceLock{
+	seqLock := func(h int32, s int64) *SequenceLock {
+		return &SequenceLock{
 			Seconds:     s,
 			BlockHeight: h,
 		}
 	}
 
 	tests := []struct {
-		seqLock     *blockchain.SequenceLock
+		seqLock     *SequenceLock
 		blockHeight int32
 		mtp         time.Time
 
@@ -55,7 +54,7 @@ func TestSequenceLocksActive(t *testing.T) {
 
 	t.Logf("Running %d sequence locks tests", len(tests))
 	for i, test := range tests {
-		got := blockchain.SequenceLockActive(test.seqLock,
+		got := SequenceLockActive(test.seqLock,
 			test.blockHeight, test.mtp)
 		if got != test.want {
 			t.Fatalf("SequenceLockActive #%d got %v want %v", i,
@@ -64,11 +63,11 @@ func TestSequenceLocksActive(t *testing.T) {
 	}
 }
 
-// TestCheckConnectBlock tests the CheckConnectBlock function to ensure it
-// fails.
-func TestCheckConnectBlock(t *testing.T) {
+// TestCheckConnectBlockTemplate tests the CheckConnectBlockTemplate function to
+// ensure it fails.
+func TestCheckConnectBlockTemplate(t *testing.T) {
 	// Create a new database and chain instance to run tests against.
-	chain, teardownFunc, err := chainSetup("checkconnectblock",
+	chain, teardownFunc, err := chainSetup("checkconnectblocktemplate",
 		&chaincfg.MainNetParams)
 	if err != nil {
 		t.Errorf("Failed to setup chain instance: %v", err)
@@ -76,11 +75,76 @@ func TestCheckConnectBlock(t *testing.T) {
 	}
 	defer teardownFunc()
 
-	// The genesis block should fail to connect since it's already inserted.
-	genesisBlock := chaincfg.MainNetParams.GenesisBlock
-	err = chain.CheckConnectBlock(btcutil.NewBlock(genesisBlock))
+	// Since we're not dealing with the real block chain, set the coinbase
+	// maturity to 1.
+	chain.TstSetCoinbaseMaturity(1)
+
+	// Load up blocks such that there is a side chain.
+	// (genesis block) -> 1 -> 2 -> 3 -> 4
+	//                          \-> 3a
+	testFiles := []string{
+		"blk_0_to_4.dat.bz2",
+		"blk_3A.dat.bz2",
+	}
+
+	var blocks []*btcutil.Block
+	for _, file := range testFiles {
+		blockTmp, err := loadBlocks(file)
+		if err != nil {
+			t.Fatalf("Error loading file: %v\n", err)
+		}
+		blocks = append(blocks, blockTmp...)
+	}
+
+	for i := 1; i <= 3; i++ {
+		isMainChain, _, err := chain.ProcessBlock(blocks[i], BFNone)
+		if err != nil {
+			t.Fatalf("CheckConnectBlockTemplate: Received unexpected error "+
+				"processing block %d: %v", i, err)
+		}
+		if !isMainChain {
+			t.Fatalf("CheckConnectBlockTemplate: Expected block %d to connect "+
+				"to main chain", i)
+		}
+	}
+
+	// Block 3 should fail to connect since it's already inserted.
+	err = chain.CheckConnectBlockTemplate(blocks[3])
 	if err == nil {
-		t.Errorf("CheckConnectBlock: Did not received expected error")
+		t.Fatal("CheckConnectBlockTemplate: Did not received expected error " +
+			"on block 3")
+	}
+
+	// Block 4 should connect successfully to tip of chain.
+	err = chain.CheckConnectBlockTemplate(blocks[4])
+	if err != nil {
+		t.Fatalf("CheckConnectBlockTemplate: Received unexpected error on "+
+			"block 4: %v", err)
+	}
+
+	// Block 3a should fail to connect since does not build on chain tip.
+	err = chain.CheckConnectBlockTemplate(blocks[5])
+	if err == nil {
+		t.Fatal("CheckConnectBlockTemplate: Did not received expected error " +
+			"on block 3a")
+	}
+
+	// Block 4 should connect even if proof of work is invalid.
+	invalidPowBlock := *blocks[4].MsgBlock()
+	invalidPowBlock.Header.Nonce++
+	err = chain.CheckConnectBlockTemplate(btcutil.NewBlock(&invalidPowBlock))
+	if err != nil {
+		t.Fatalf("CheckConnectBlockTemplate: Received unexpected error on "+
+			"block 4 with bad nonce: %v", err)
+	}
+
+	// Invalid block building on chain tip should fail to connect.
+	invalidBlock := *blocks[4].MsgBlock()
+	invalidBlock.Header.Bits--
+	err = chain.CheckConnectBlockTemplate(btcutil.NewBlock(&invalidBlock))
+	if err == nil {
+		t.Fatal("CheckConnectBlockTemplate: Did not received expected error " +
+			"on block 4 with invalid difficulty bits")
 	}
 }
 
@@ -89,8 +153,8 @@ func TestCheckConnectBlock(t *testing.T) {
 func TestCheckBlockSanity(t *testing.T) {
 	powLimit := chaincfg.MainNetParams.PowLimit
 	block := btcutil.NewBlock(&Block100000)
-	timeSource := blockchain.NewMedianTime()
-	err := blockchain.CheckBlockSanity(block, powLimit, timeSource)
+	timeSource := NewMedianTime()
+	err := CheckBlockSanity(block, powLimit, timeSource)
 	if err != nil {
 		t.Errorf("CheckBlockSanity: %v", err)
 	}
@@ -99,7 +163,7 @@ func TestCheckBlockSanity(t *testing.T) {
 	// second fails.
 	timestamp := block.MsgBlock().Header.Timestamp
 	block.MsgBlock().Header.Timestamp = timestamp.Add(time.Nanosecond)
-	err = blockchain.CheckBlockSanity(block, powLimit, timeSource)
+	err = CheckBlockSanity(block, powLimit, timeSource)
 	if err == nil {
 		t.Errorf("CheckBlockSanity: error is nil when it shouldn't be")
 	}
@@ -112,14 +176,14 @@ func TestCheckSerializedHeight(t *testing.T) {
 	// Create an empty coinbase template to be used in the tests below.
 	coinbaseOutpoint := wire.NewOutPoint(&chainhash.Hash{}, math.MaxUint32)
 	coinbaseTx := wire.NewMsgTx(1)
-	coinbaseTx.AddTxIn(wire.NewTxIn(coinbaseOutpoint, nil))
+	coinbaseTx.AddTxIn(wire.NewTxIn(coinbaseOutpoint, nil, nil))
 
 	// Expected rule errors.
-	missingHeightError := blockchain.RuleError{
-		ErrorCode: blockchain.ErrMissingCoinbaseHeight,
+	missingHeightError := RuleError{
+		ErrorCode: ErrMissingCoinbaseHeight,
 	}
-	badHeightError := blockchain.RuleError{
-		ErrorCode: blockchain.ErrBadCoinbaseHeight,
+	badHeightError := RuleError{
+		ErrorCode: ErrBadCoinbaseHeight,
 	}
 
 	tests := []struct {
@@ -151,15 +215,15 @@ func TestCheckSerializedHeight(t *testing.T) {
 		msgTx.TxIn[0].SignatureScript = test.sigScript
 		tx := btcutil.NewTx(msgTx)
 
-		err := blockchain.TstCheckSerializedHeight(tx, test.wantHeight)
+		err := checkSerializedHeight(tx, test.wantHeight)
 		if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
 			t.Errorf("checkSerializedHeight #%d wrong error type "+
 				"got: %v <%T>, want: %T", i, err, err, test.err)
 			continue
 		}
 
-		if rerr, ok := err.(blockchain.RuleError); ok {
-			trerr := test.err.(blockchain.RuleError)
+		if rerr, ok := err.(RuleError); ok {
+			trerr := test.err.(RuleError)
 			if rerr.ErrorCode != trerr.ErrorCode {
 				t.Errorf("checkSerializedHeight #%d wrong "+
 					"error code got: %v, want: %v", i,

@@ -1,12 +1,12 @@
-hash: d056bc8caf2b8d1425ebecfd1e379ce7d528d7d8f585a4dd81b74e4a86d4222c
-updated: 2017-10-27T10:52:43.050057963+08:00
+hash: fc81c72c86e874e95d504d6d9e7e31a6f2a0f3c10442ad975fe79ee449eb0c42
+updated: 2017-12-06T10:00:48.337138+08:00
 imports:
 - name: github.com/aristanetworks/goarista
-  version: 8e44bec0a94d7c1f0cdf28ed5215e5cfab441ad0
+  version: 4f77ecb4dd55e0b2aa5ff0388cfbea9d58d319a3
   subpackages:
   - monotime
 - name: github.com/btcsuite/btcd
-  version: 47885ab8702485be6b6f87a03d4f3be0bc5c982c
+  version: 2e60448ffcc6bf78332d1fe590260095f554dd78
   subpackages:
   - btcec
 - name: github.com/ethereum/go-ethereum
@@ -36,11 +36,15 @@ imports:
   - rpc
   - trie
 - name: github.com/go-stack/stack
-  version: 817915b46b97fd7bb80e8ab6b69f01a53ac3eebf
+  version: 259ab82a6cad3992b4e21ff5cac294ccb06474bc
+- name: github.com/golang/mock
+  version: 13f360950a79f5864a972c786a10a50e44b69541
+  subpackages:
+  - gomock
 - name: github.com/golang/snappy
   version: 553a641470496b2327abcac10b36396bd98e45c9
 - name: github.com/huin/goupnp
-  version: 9b81a7424f2384e4df098d4ac9096f9ed9d8ef95
+  version: dceda08e705b2acee36aab47d765ed801f64cfc7
   subpackages:
   - dcps/internetgateway1
   - dcps/internetgateway2
@@ -53,17 +57,17 @@ imports:
 - name: github.com/jackpal/go-nat-pmp
   version: 28a68d0c24adce1da43f8df6a57340909ecd7fdd
 - name: github.com/mattn/go-colorable
-  version: 6c0fd4aa6ec5818d5e3ea9e03ae436972a6c5a9a
+  version: 6fcc0c1fd9b620311d821b106a400b35dc95c497
 - name: github.com/mattn/go-isatty
-  version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
+  version: 6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c
 - name: github.com/rcrowley/go-metrics
-  version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+  version: e181e095bae94582363434144c61a9653aff6e50
   subpackages:
   - exp
 - name: github.com/rs/cors
   version: eabcc6af4bbe5ad3a949d36450326a2b0b9894b8
 - name: github.com/syndtr/goleveldb
-  version: b89cc31ef7977104127d34c1bd31ebd1a9db2199
+  version: adf24ef3f94bd13ec4163060b21a5678f22b429b
   subpackages:
   - leveldb
   - leveldb/cache
@@ -78,18 +82,18 @@ imports:
   - leveldb/table
   - leveldb/util
 - name: golang.org/x/net
-  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  version: f2499483f923065a842d38eb4c7f1927e6fc6e6d
   subpackages:
   - html
   - html/atom
   - html/charset
   - websocket
 - name: golang.org/x/sys
-  version: b0e0dd72976dc482b6cb37c5640440f876ac1907
+  version: ebfc5b4631820b793c9010c87fd8fef0f39eb082
   subpackages:
   - unix
 - name: golang.org/x/text
-  version: 3bd178b88a8180be2df394a1fbb81313916f0e7b
+  version: b19bf474d317b857955b12035d2c5acb57ce8b01
   subpackages:
   - encoding
   - encoding/charmap

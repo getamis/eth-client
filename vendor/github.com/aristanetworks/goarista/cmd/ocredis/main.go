@@ -1,4 +1,4 @@
-// Copyright (C) 2016  Arista Networks, Inc.
+// Copyright (c) 2016 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -13,8 +13,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/aristanetworks/glog"
 	occlient "github.com/aristanetworks/goarista/openconfig/client"
+
+	"github.com/aristanetworks/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/openconfig/reference/rpc/openconfig"
 	redis "gopkg.in/redis.v4"
