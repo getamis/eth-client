@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -12,10 +13,12 @@ import (
 //go:generate mockgen -source=eth.go -destination=mock_eth.go -package=rpc
 type Eth interface {
 	PublicTransactionPool
+	PublicEthereum
 }
 
 type eth struct {
 	PublicTransactionPool
+	PublicEthereum
 }
 
 func NewEth(client *client.Client) Eth {
@@ -298,6 +301,109 @@ func (pub *publicTransactionPool) GetRawTransaction(ctx context.Context, hash co
 func (pub *publicTransactionPool) PendingTransactions(ctx context.Context) ([]*RPCTransaction, error) {
 	var r []*RPCTransaction
 	err := pub.client.CallContext(ctx, &r, "eth_pendingTransactions")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+type PublicEthereum interface {
+	// GasPrice returns a suggestion for a gas price.
+	GasPrice(ctx context.Context) (*big.Int, error)
+
+	// ProtocolVersion returns the current Ethereum protocol version this node supports
+	ProtocolVersion(ctx context.Context) (hexutil.Uint, error)
+
+	// Syncing returns false in case the node is currently not syncing with the network. It can be up to date or has not
+	// yet received the latest block headers from its pears. In case it is synchronizing:
+	// - startingBlock: block number this node started to synchronise from
+	// - currentBlock:  block number this node is currently importing
+	// - highestBlock:  block number of the highest block header this node has received from peers
+	// - pulledStates:  number of state entries processed until now
+	// - knownStates:   number of known state entries that still need to be pulled
+	Syncing(ctx context.Context) (interface{}, error)
+
+	// Etherbase is the address that mining rewards will be send to
+	Etherbase(ctx context.Context) (common.Address, error)
+
+	// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
+	Coinbase(ctx context.Context) (common.Address, error)
+
+	// Hashrate returns the POW hashrate
+	Hashrate(ctx context.Context) (hexutil.Uint64, error)
+}
+
+type publicEthereum struct {
+	client *client.Client
+}
+
+func NewPublicEthereum(client *client.Client) PublicEthereum {
+	return &publicEthereum{
+		client: client,
+	}
+}
+
+// GasPrice returns a suggestion for a gas price.
+func (pub *publicTransactionPool) GasPrice(ctx context.Context) (*big.Int, error) {
+	var r *big.Int
+	err := pub.client.CallContext(ctx, &r, "eth_gasPrice")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+
+}
+
+// ProtocolVersion returns the current Ethereum protocol version this node supports
+func (pub *publicTransactionPool) ProtocolVersion(ctx context.Context) (hexutil.Uint, error) {
+	var r hexutil.Uint
+	err := pub.client.CallContext(ctx, &r, "eth_protocolVersion")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Syncing returns false in case the node is currently not syncing with the network. It can be up to date or has not
+// yet received the latest block headers from its pears. In case it is synchronizing:
+// - startingBlock: block number this node started to synchronise from
+// - currentBlock:  block number this node is currently importing
+// - highestBlock:  block number of the highest block header this node has received from peers
+// - pulledStates:  number of state entries processed until now
+// - knownStates:   number of known state entries that still need to be pulled
+func (pub *publicTransactionPool) Syncing(ctx context.Context) (interface{}, error) {
+	var r interface{}
+	err := pub.client.CallContext(ctx, &r, "eth_syncing")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Etherbase is the address that mining rewards will be send to
+func (pub *publicTransactionPool) Etherbase(ctx context.Context) (common.Address, error) {
+	var r common.Address
+	err := pub.client.CallContext(ctx, &r, "eth_etherbase")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
+func (pub *publicTransactionPool) Coinbase(ctx context.Context) (common.Address, error) {
+	var r common.Address
+	err := pub.client.CallContext(ctx, &r, "eth_coinbase")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Hashrate returns the POW hashrate
+func (pub *publicTransactionPool) Hashrate(ctx context.Context) (hexutil.Uint64, error) {
+	var r hexutil.Uint64
+	err := pub.client.CallContext(ctx, &r, "eth_hashrate")
 	if err != nil {
 		return r, err
 	}
