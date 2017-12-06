@@ -7,6 +7,7 @@ import (
 	client "github.com/ethereum/go-ethereum/rpc"
 )
 
+//go:generate mockgen -source=admin.go -destination=mock_admin.go -package=rpc
 type Admin interface {
 	PrivateAdmin
 	PublicAdmin

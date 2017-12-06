@@ -9,6 +9,7 @@ import (
 	client "github.com/ethereum/go-ethereum/rpc"
 )
 
+//go:generate mockgen -source=eth.go -destination=mock_eth.go -package=rpc
 type Eth interface {
 	PublicTransactionPool
 }

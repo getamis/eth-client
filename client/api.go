@@ -20,12 +20,13 @@ import (
 	"context"
 	"math/big"
 
-	"github.com/ethereum/go-ethereum"
+	ethereum "github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	rpcapi "github.com/getamis/eth-client/client/rpc"
 )
 
+//go:generate mockgen -source=api.go -destination=mock_client.go -package=client
 type Client interface {
 	Close()
 
