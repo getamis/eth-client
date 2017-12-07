@@ -1,11 +1,10 @@
 language: go
 go_import_path: github.com/getamis/eth-client
 sudo: false
-os: 
+os:
   - linux
   - osx
 go:
-  - 1.7.x
   - 1.8.x
   - 1.9.x
 
