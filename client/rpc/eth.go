@@ -7,6 +7,8 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/eth/downloader"
+	"github.com/ethereum/go-ethereum/eth/filters"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
@@ -15,12 +17,20 @@ type Eth interface {
 	PublicTransactionPool
 	PublicEthereum
 	PublicBlockChain
+	PublicAccount
+	PublicMiner
+	PublicDownloader
+	PublicFilter
 }
 
 type eth struct {
 	PublicTransactionPool
 	PublicEthereum
 	PublicBlockChain
+	PublicAccount
+	PublicMiner
+	PublicDownloader
+	PublicFilter
 }
 
 func NewEth(client *ethrpc.Client) Eth {
@@ -28,6 +38,10 @@ func NewEth(client *ethrpc.Client) Eth {
 		PublicTransactionPool: NewPublicTransactionPool(client),
 		PublicEthereum:        NewPublicEthereum(client),
 		PublicBlockChain:      NewPublicBlockChain(client),
+		PublicAccount:         NewPublicAccount(client),
+		PublicMiner:           NewPublicMiner(client),
+		PublicDownloader:      NewPublicDownloader(client),
+		PublicFilter:          NewPublicFilter(client),
 	}
 }
 
@@ -606,6 +620,245 @@ func (pub *publicBlockChain) Call(ctx context.Context, args CallArgs, blockNr st
 func (pub *publicBlockChain) EstimateGas(ctx context.Context, args CallArgs) (*hexutil.Big, error) {
 	var r *hexutil.Big
 	err := pub.client.CallContext(ctx, &r, "eth_estimateGas")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+type PublicAccount interface {
+	// Accounts returns the collection of accounts this node manages
+	Accounts(context.Context) ([]common.Address, error)
+}
+
+type publicAccount struct {
+	client *ethrpc.Client
+}
+
+func NewPublicAccount(client *ethrpc.Client) PublicAccount {
+	return &publicAccount{
+		client: client,
+	}
+}
+
+// Accounts returns the collection of accounts this node manages
+func (pub *publicAccount) Accounts(ctx context.Context) ([]common.Address, error) {
+	var r []common.Address
+	err := pub.client.CallContext(ctx, &r, "eth_accounts")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+type PublicMiner interface {
+	// Mining returns an indication if this node is currently mining.
+	Mining(ctx context.Context) (bool, error)
+
+	// SubmitWork can be used by external miner to submit their POW solution. It returns an indication if the work was
+	// accepted. Note, this is not an indication if the provided work was valid!
+	SubmitWork(ctx context.Context, nonce types.BlockNonce, solution, digest common.Hash) (bool, error)
+
+	// GetWork returns a work package for external miner. The work package consists of 3 strings
+	// result[0], 32 bytes hex encoded current block header pow-hash
+	// result[1], 32 bytes hex encoded seed hash used for DAG
+	// result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
+	GetWork(ctx context.Context) ([3]string, error)
+
+	// SubmitHashrate can be used for remote miners to submit their hash rate. This enables the node to report the combined
+	// hash rate of all miners which submit work through this node. It accepts the miner hash rate and an identifier which
+	// must be unique between nodes.
+	SubmitHashrate(ctx context.Context, hashrate hexutil.Uint64, id common.Hash) (bool, error)
+}
+
+type publicMiner struct {
+	client *ethrpc.Client
+}
+
+func NewPublicMiner(client *ethrpc.Client) PublicMiner {
+	return &publicMiner{
+		client: client,
+	}
+}
+
+// Mining returns an indication if this node is currently mining.
+func (pub *publicMiner) Mining(ctx context.Context) (bool, error) {
+	var r bool
+	err := pub.client.CallContext(ctx, &r, "eth_mining")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// SubmitWork can be used by external miner to submit their POW solution. It returns an indication if the work was
+// accepted. Note, this is not an indication if the provided work was valid!
+func (pub *publicMiner) SubmitWork(ctx context.Context, nonce types.BlockNonce, solution, digest common.Hash) (bool, error) {
+	var r bool
+	err := pub.client.CallContext(ctx, &r, "eth_submitWork")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetWork returns a work package for external miner. The work package consists of 3 strings
+// result[0], 32 bytes hex encoded current block header pow-hash
+// result[1], 32 bytes hex encoded seed hash used for DAG
+// result[2], 32 bytes hex encoded boundary condition ("target"), 2^256/difficulty
+func (pub *publicMiner) GetWork(ctx context.Context) ([3]string, error) {
+	var r [3]string
+	err := pub.client.CallContext(ctx, &r, "eth_getWork")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// SubmitHashrate can be used for remote miners to submit their hash rate. This enables the node to report the combined
+// hash rate of all miners which submit work through this node. It accepts the miner hash rate and an identifier which
+// must be unique between nodes.
+func (pub *publicMiner) SubmitHashrate(ctx context.Context, hashrate hexutil.Uint64, id common.Hash) (bool, error) {
+	var r bool
+	err := pub.client.CallContext(ctx, &r, "eth_submitHashrate")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+type PublicDownloader interface {
+	// Duplicate function with PublicEthereum
+	// Syncing provides information when this nodes starts synchronising with the Ethereum network and when it's finished.
+	// Syncing(ctx context.Context) (*ethrpc.Subscription, error)
+
+	// SubscribeSyncStatus creates a subscription that will broadcast new synchronisation updates.
+	// The given channel must receive interface values, the result can either
+	SubscribeSyncStatus(ctx context.Context, status chan interface{}) (*downloader.SyncStatusSubscription, error)
+}
+
+type publicDownloader struct {
+	client *ethrpc.Client
+}
+
+func NewPublicDownloader(client *ethrpc.Client) PublicDownloader {
+	return &publicDownloader{
+		client: client,
+	}
+}
+
+// // Syncing provides information when this nodes starts synchronising with the Ethereum network and when it's finished.
+// func (pub *publicDownloader) Syncing(ctx context.Context) (*ethrpc.Subscription, error) {
+// 	var r *ethrpc.Subscription
+// 	err := pub.client.CallContext(ctx, &r, "eth_syncing")
+// 	if err != nil {
+// 		return r, err
+// 	}
+// 	return r, nil
+// }
+
+// SubscribeSyncStatus creates a subscription that will broadcast new synchronisation updates.
+// The given channel must receive interface values, the result can either
+func (pub *publicDownloader) SubscribeSyncStatus(ctx context.Context, status chan interface{}) (*downloader.SyncStatusSubscription, error) {
+	var r *downloader.SyncStatusSubscription
+	err := pub.client.CallContext(ctx, &r, "eth_subscribeSyncStatus")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+type PublicFilter interface {
+	// NewPendingTransactionFilter creates a filter that fetches pending transaction hashes
+	// as transactions enter the pending state.
+	//
+	// It is part of the filter package because this filter can be used throug the
+	// `eth_getFilterChanges` polling method that is also used for log filters.
+	//
+	// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
+	NewPendingTransactionFilter(ctx context.Context) (ethrpc.ID, error)
+
+	// NewPendingTransactions creates a subscription that is triggered each time a transaction
+	// enters the transaction pool and was signed from one of the transactions this nodes manages.
+	NewPendingTransactions(ctx context.Context) (*ethrpc.Subscription, error)
+
+	// NewBlockFilter creates a filter that fetches blocks that are imported into the chain.
+	// It is part of the filter package since polling goes with eth_getFilterChanges.
+	//
+	// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
+	NewBlockFilter(ctx context.Context) (ethrpc.ID, error)
+
+	// NewHeads send a notification each time a new (header) block is appended to the chain.
+	NewHeads(ctx context.Context) (*ethrpc.Subscription, error)
+
+	// Logs creates a subscription that fires for all new log that match the given filter criteria.
+	Logs(ctx context.Context, crit filters.FilterCriteria) (*ethrpc.Subscription, error)
+}
+
+type publicFilter struct {
+	client *ethrpc.Client
+}
+
+func NewPublicFilter(client *ethrpc.Client) PublicFilter {
+	return &publicFilter{
+		client: client,
+	}
+}
+
+// NewPendingTransactionFilter creates a filter that fetches pending transaction hashes
+// as transactions enter the pending state.
+//
+// It is part of the filter package because this filter can be used throug the
+// `eth_getFilterChanges` polling method that is also used for log filters.
+//
+// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newpendingtransactionfilter
+func (pub *publicFilter) NewPendingTransactionFilter(ctx context.Context) (ethrpc.ID, error) {
+	var r ethrpc.ID
+	err := pub.client.CallContext(ctx, &r, "eth_newPendingTransactionFilter")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// NewPendingTransactions creates a subscription that is triggered each time a transaction
+// enters the transaction pool and was signed from one of the transactions this nodes manages.
+func (pub *publicFilter) NewPendingTransactions(ctx context.Context) (*ethrpc.Subscription, error) {
+	var r *ethrpc.Subscription
+	err := pub.client.CallContext(ctx, &r, "eth_newPendingTransactions")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// NewBlockFilter creates a filter that fetches blocks that are imported into the chain.
+// It is part of the filter package since polling goes with eth_getFilterChanges.
+//
+// https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
+func (pub *publicFilter) NewBlockFilter(ctx context.Context) (ethrpc.ID, error) {
+	var r ethrpc.ID
+	err := pub.client.CallContext(ctx, &r, "eth_newBlockFilter")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// NewHeads send a notification each time a new (header) block is appended to the chain.
+func (pub *publicFilter) NewHeads(ctx context.Context) (*ethrpc.Subscription, error) {
+	var r *ethrpc.Subscription
+	err := pub.client.CallContext(ctx, &r, "eth_newHeads")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Logs creates a subscription that fires for all new log that match the given filter criteria.
+func (pub *publicFilter) Logs(ctx context.Context, crit filters.FilterCriteria) (*ethrpc.Subscription, error) {
+	var r *ethrpc.Subscription
+	err := pub.client.CallContext(ctx, &r, "eth_logs")
 	if err != nil {
 		return r, err
 	}
