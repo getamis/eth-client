@@ -1,4 +1,4 @@
-// Copyright (C) 2015  Arista Networks, Inc.
+// Copyright (c) 2015 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -533,5 +533,64 @@ func BenchmarkBigMapWithCompositeKeys(b *testing.B) {
 		if found != (i < size) {
 			b.Fatalf("WTF: %#v", k)
 		}
+	}
+}
+
+func BenchmarkBuiltInType(b *testing.B) {
+	benches := []struct {
+		val interface{}
+	}{
+		{
+			val: "foo",
+		},
+		{
+			val: int8(-12),
+		},
+		{
+			val: int16(123),
+		},
+		{
+			val: int32(123),
+		},
+		{
+			val: int64(123456),
+		},
+		{
+			val: uint8(12),
+		},
+		{
+			val: uint16(123),
+		},
+		{
+			val: uint32(123),
+		},
+		{
+			val: uint64(123456),
+		},
+		{
+			val: float32(123456.12),
+		},
+		{
+			val: float64(123456.12),
+		},
+		{
+			val: true,
+		},
+	}
+
+	for _, bench := range benches {
+		var k Key
+		b.Run(fmt.Sprintf("%T", bench.val), func(b *testing.B) {
+			b.ReportAllocs()
+			for i := 0; i < b.N; i++ {
+				// create the key.Key and call some function here
+				if k = New(bench.val); k == nil {
+					b.Fatalf("expect to get key.Key, but got nil")
+				}
+				if !k.Equal(New(bench.val)) {
+					b.Fatalf("k is not equal to itself: %v", bench.val)
+				}
+			}
+		})
 	}
 }

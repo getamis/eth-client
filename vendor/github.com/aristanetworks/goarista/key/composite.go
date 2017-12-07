@@ -1,4 +1,4 @@
-// Copyright (C) 2016  Arista Networks, Inc.
+// Copyright (c) 2016 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -48,11 +48,8 @@ func (k composite) MarshalJSON() ([]byte, error) {
 }
 
 func (k composite) Equal(other interface{}) bool {
-	o, ok := other.(Key)
-	if !ok {
-		return false
-	}
-	return keyEqual(k.Key(), o.Key())
+	o, ok := other.(composite)
+	return ok && mapStringEqual(k.m, o.m)
 }
 
 func hashInterface(v interface{}) uintptr {
@@ -108,7 +105,7 @@ func equal(a unsafe.Pointer, b unsafe.Pointer) bool {
 	if cb.sentinel != sentinel {
 		panic("use of uncomparable type on the rhs of ==")
 	}
-	return ca.Equal(*cb)
+	return mapStringEqual(ca.m, cb.m)
 }
 
 func init() {

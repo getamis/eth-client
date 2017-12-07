@@ -21,7 +21,7 @@ See the [cmd](cmd) directory.
 
 Provides `ListenTCPWithTOS()`, which is a replacement for `net.ListenTCP()`
 that allows specifying the ToS (Type of Service), to specify DSCP / ECN /
-class of service flags to use for incoming connections.
+class of service flags to use for incoming connections. Requires `go1.9`.
 
 ## key
 
@@ -31,6 +31,13 @@ use a non-hashable type as a key to a `map`, and we sometimes need to use
 a `map[string]interface{}` (or something containing one) as a key to maps.
 As a result, we frequently use `map[key.Key]interface{}` instead of just
 `map[interface{}]interface{}` when we need a generic key-value collection.
+
+## path
+
+Provides a common type used across various Arista projects, named `path.Path`,
+which is the representation of a path broken down into individual elements.
+Each element is a `key.Key`. The type `path.Map` may be used for mapping paths
+to values. It allows for some fuzzy matching.
 
 ## lanz
 A client for [LANZ](https://eos.arista.com/latency-analyzer-lanz-architectures-and-configuration/)
@@ -50,8 +57,7 @@ callback `cb` in the given [network namespace](https://lwn.net/Articles/580893/)
 
 ## pathmap
 
-A datastructure for mapping keys of type string slice to values. It
-allows for some fuzzy matching.
+DEPRECATED; use`path.Map` instead.
 
 ## test
 

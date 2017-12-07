@@ -6,6 +6,7 @@ package blockchain
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/database"
@@ -28,11 +29,6 @@ const (
 	// not be performed.
 	BFNoPoWCheck
 
-	// BFDryRun may be set to indicate the block should not modify the chain
-	// or memory chain index.  This is useful to test that a block is valid
-	// without modifying the current state.
-	BFDryRun
-
 	// BFNone is a convenience value to specifically indicate no flags.
 	BFNone BehaviorFlags = 0
 )
@@ -40,7 +36,7 @@ const (
 // blockExists determines whether a block with the given hash exists either in
 // the main chain or any side chains.
 //
-// This function MUST be called with the chain state lock held (for reads).
+// This function is safe for concurrent access.
 func (b *BlockChain) blockExists(hash *chainhash.Hash) (bool, error) {
 	// Check block index first (could be main chain or side chain blocks).
 	if b.index.HaveBlock(hash) {
@@ -148,7 +144,6 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	defer b.chainLock.Unlock()
 
 	fastAdd := flags&BFFastAdd == BFFastAdd
-	dryRun := flags&BFDryRun == BFDryRun
 
 	blockHash := block.Hash()
 	log.Tracef("Processing block %v", blockHash)
@@ -182,14 +177,13 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 	// used to eat memory, and ensuring expected (versus claimed) proof of
 	// work requirements since the previous checkpoint are met.
 	blockHeader := &block.MsgBlock().Header
-	checkpointBlock, err := b.findPreviousCheckpoint()
+	checkpointNode, err := b.findPreviousCheckpoint()
 	if err != nil {
 		return false, false, err
 	}
-	if checkpointBlock != nil {
+	if checkpointNode != nil {
 		// Ensure the block timestamp is after the checkpoint timestamp.
-		checkpointHeader := &checkpointBlock.MsgBlock().Header
-		checkpointTime := checkpointHeader.Timestamp
+		checkpointTime := time.Unix(checkpointNode.timestamp, 0)
 		if blockHeader.Timestamp.Before(checkpointTime) {
 			str := fmt.Sprintf("block %v has timestamp %v before "+
 				"last checkpoint timestamp %v", blockHash,
@@ -205,7 +199,7 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 			// maximum adjustment allowed by the retarget rules.
 			duration := blockHeader.Timestamp.Sub(checkpointTime)
 			requiredTarget := CompactToBig(b.calcEasiestDifficulty(
-				checkpointHeader.Bits, duration))
+				checkpointNode.bits, duration))
 			currentTarget := CompactToBig(blockHeader.Bits)
 			if currentTarget.Cmp(requiredTarget) > 0 {
 				str := fmt.Sprintf("block target difficulty of %064x "+
@@ -223,11 +217,8 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 	if !prevHashExists {
-		if !dryRun {
-			log.Infof("Adding orphan block %v with parent %v",
-				blockHash, prevHash)
-			b.addOrphanBlock(block)
-		}
+		log.Infof("Adding orphan block %v with parent %v", blockHash, prevHash)
+		b.addOrphanBlock(block)
 
 		return false, true, nil
 	}
@@ -239,18 +230,15 @@ func (b *BlockChain) ProcessBlock(block *btcutil.Block, flags BehaviorFlags) (bo
 		return false, false, err
 	}
 
-	// Don't process any orphans or log when the dry run flag is set.
-	if !dryRun {
-		// Accept any orphan blocks that depend on this block (they are
-		// no longer orphans) and repeat for those accepted blocks until
-		// there are no more.
-		err := b.processOrphans(blockHash, flags)
-		if err != nil {
-			return false, false, err
-		}
-
-		log.Debugf("Accepted block %v", blockHash)
+	// Accept any orphan blocks that depend on this block (they are
+	// no longer orphans) and repeat for those accepted blocks until
+	// there are no more.
+	err = b.processOrphans(blockHash, flags)
+	if err != nil {
+		return false, false, err
 	}
+
+	log.Debugf("Accepted block %v", blockHash)
 
 	return isMainChain, false, nil
 }

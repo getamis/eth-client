@@ -1,4 +1,4 @@
-// Copyright (C) 2017  Arista Networks, Inc.
+// Copyright (c) 2017 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -6,23 +6,19 @@ package main
 
 import (
 	"context"
-	"errors"
 	"flag"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
 
-	pb "github.com/openconfig/gnmi/proto/gnmi"
-	"google.golang.org/grpc/codes"
+	"github.com/aristanetworks/goarista/gnmi"
 
 	"github.com/aristanetworks/glog"
-	"github.com/aristanetworks/goarista/gnmi"
+	pb "github.com/openconfig/gnmi/proto/gnmi"
 )
 
 // TODO: Make this more clear
 var help = `Usage of gnmi:
-gnmi [options]
+gnmi -addr ADDRESS:PORT [options...]
   capabilities
   get PATH+
   subscribe PATH+
@@ -33,12 +29,6 @@ func exitWithError(s string) {
 	flag.Usage()
 	fmt.Fprintln(os.Stderr, s)
 	os.Exit(1)
-}
-
-type operation struct {
-	opType string
-	path   []string
-	val    string
 }
 
 func main() {
@@ -56,25 +46,32 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+	if cfg.Addr == "" {
+		exitWithError("error: address not specified")
+	}
+
 	args := flag.Args()
 
 	ctx := gnmi.NewContext(context.Background(), cfg)
 	client := gnmi.Dial(cfg)
 
-	var setOps []*operation
+	var setOps []*gnmi.Operation
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "capabilities":
 			if len(setOps) != 0 {
 				exitWithError("error: 'capabilities' not allowed after 'merge|replace|delete'")
 			}
-			exitWithError("error: 'capabilities' not supported")
+			err := gnmi.Capabilities(ctx, client)
+			if err != nil {
+				glog.Fatal(err)
+			}
 			return
 		case "get":
 			if len(setOps) != 0 {
 				exitWithError("error: 'get' not allowed after 'merge|replace|delete'")
 			}
-			err := get(ctx, client, gnmi.SplitPaths(args[i+1:]))
+			err := gnmi.Get(ctx, client, gnmi.SplitPaths(args[i+1:]))
 			if err != nil {
 				glog.Fatal(err)
 			}
@@ -83,26 +80,36 @@ func main() {
 			if len(setOps) != 0 {
 				exitWithError("error: 'subscribe' not allowed after 'merge|replace|delete'")
 			}
-			err := subscribe(ctx, client, gnmi.SplitPaths(args[i+1:]))
-			if err != nil {
-				glog.Fatal(err)
+			respChan := make(chan *pb.SubscribeResponse)
+			errChan := make(chan error)
+			defer close(respChan)
+			defer close(errChan)
+			go gnmi.Subscribe(ctx, client, gnmi.SplitPaths(args[i+1:]), respChan, errChan)
+			for {
+				select {
+				case resp := <-respChan:
+					if err := gnmi.LogSubscribeResponse(resp); err != nil {
+						exitWithError(err.Error())
+					}
+				case err := <-errChan:
+					exitWithError(err.Error())
+				}
 			}
-			return
 		case "update", "replace", "delete":
 			if len(args) == i+1 {
 				exitWithError("error: missing path")
 			}
-			op := &operation{
-				opType: args[i],
+			op := &gnmi.Operation{
+				Type: args[i],
 			}
 			i++
-			op.path = gnmi.SplitPath(args[i])
-			if op.opType != "delete" {
+			op.Path = gnmi.SplitPath(args[i])
+			if op.Type != "delete" {
 				if len(args) == i+1 {
 					exitWithError("error: missing JSON")
 				}
 				i++
-				op.val = args[i]
+				op.Val = args[i]
 			}
 			setOps = append(setOps, op)
 		default:
@@ -113,109 +120,9 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	err := set(ctx, client, setOps)
+	err := gnmi.Set(ctx, client, setOps)
 	if err != nil {
 		glog.Fatal(err)
 	}
 
-}
-
-func get(ctx context.Context, client pb.GNMIClient, paths [][]string) error {
-	req, err := gnmi.NewGetRequest(paths)
-	if err != nil {
-		return err
-	}
-	resp, err := client.Get(ctx, req)
-	if err != nil {
-		return err
-	}
-	for _, notif := range resp.Notification {
-		for _, update := range notif.Update {
-			fmt.Printf("%s:\n", gnmi.StrPath(update.Path))
-			fmt.Println(string(update.Value.Value))
-		}
-	}
-	return nil
-}
-
-// val may be a path to a file or it may be json. First see if it is a
-// file, if so return its contents, otherwise return val
-func extractJSON(val string) []byte {
-	jsonBytes, err := ioutil.ReadFile(val)
-	if err != nil {
-		jsonBytes = []byte(val)
-	}
-	return jsonBytes
-}
-
-func set(ctx context.Context, client pb.GNMIClient, setOps []*operation) error {
-	req := &pb.SetRequest{}
-	for _, op := range setOps {
-		elm, err := gnmi.ParseGNMIElements(op.path)
-		if err != nil {
-			return err
-		}
-		switch op.opType {
-		case "delete":
-			req.Delete = append(req.Delete, &pb.Path{Elem: elm})
-		case "update":
-			req.Update = append(req.Update, &pb.Update{
-				Value: &pb.Value{Value: extractJSON(op.val)},
-				Path:  &pb.Path{Elem: elm}})
-		case "replace":
-			req.Replace = append(req.Replace, &pb.Update{
-				Value: &pb.Value{Value: extractJSON(op.val)},
-				Path:  &pb.Path{Elem: elm}})
-		}
-	}
-
-	resp, err := client.Set(ctx, req)
-	if err != nil {
-		return err
-	}
-	if resp.Message != nil && codes.Code(resp.Message.Code) != codes.OK {
-		return errors.New(resp.Message.Message)
-	}
-	// TODO: Iterate over SetResponse.Response for more detailed error message?
-
-	return nil
-}
-
-func subscribe(ctx context.Context, client pb.GNMIClient, paths [][]string) error {
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	stream, err := client.Subscribe(ctx)
-	if err != nil {
-		return err
-	}
-	req, err := gnmi.NewSubscribeRequest(paths)
-	if err != nil {
-		return err
-	}
-	if err := stream.Send(req); err != nil {
-		return err
-	}
-
-	for {
-		response, err := stream.Recv()
-		if err != nil {
-			if err == io.EOF {
-				return nil
-			}
-			return err
-		}
-		switch resp := response.Response.(type) {
-		case *pb.SubscribeResponse_Error:
-			return errors.New(resp.Error.Message)
-		case *pb.SubscribeResponse_SyncResponse:
-			if !resp.SyncResponse {
-				return errors.New("initial sync failed")
-			}
-		case *pb.SubscribeResponse_Update:
-			for _, update := range resp.Update.Update {
-				fmt.Printf("%s = %s\n", gnmi.StrPath(update.Path),
-					string(update.Value.Value))
-			}
-		}
-	}
 }

@@ -1,4 +1,4 @@
-// Copyright (C) 2017  Arista Networks, Inc.
+// Copyright (c) 2017 Arista Networks, Inc.
 // Use of this source code is governed by the Apache License 2.0
 // that can be found in the COPYING file.
 
@@ -11,8 +11,9 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/aristanetworks/glog"
 	"github.com/aristanetworks/goarista/openconfig/client"
+
+	"github.com/aristanetworks/glog"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )

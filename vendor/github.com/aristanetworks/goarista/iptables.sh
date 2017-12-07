@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2016  Arista Networks, Inc.
+# Copyright (c) 2016 Arista Networks, Inc.
 # Use of this source code is governed by the Apache License 2.0
 # that can be found in the COPYING file.
 
@@ -9,9 +9,11 @@ set -e
 
 if [ "$#" -lt 1 ]
 then
-   echo "usage: $0 <host> [<port>]"
+   echo "usage: $0 <host> [<gNMI port>]"
    exit 1
 fi
+
+echo "WARNING: if you're not using EOS-INT, EOS-REV-0-1 or EOS 4.18 or earlier please use -allowed_ips on the server instead."
 
 host=$1
 port=$DEFAULT_PORT

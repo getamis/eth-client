@@ -23,14 +23,16 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/ethereum/go-ethereum/p2p"
 	ethrpc "github.com/ethereum/go-ethereum/rpc"
+	rpcapi "github.com/getamis/eth-client/client/rpc"
 )
 
 // client defines typed wrappers for the Ethereum RPC API.
 type client struct {
 	*ethclient.Client
-	rpc *ethrpc.Client
+	rpc   *ethrpc.Client
+	admin rpcapi.Admin
+	eth   rpcapi.Eth
 }
 
 // Dial connects a client to the given URL.
@@ -47,7 +49,17 @@ func NewClient(rpc *ethrpc.Client) Client {
 	return &client{
 		Client: ethclient.NewClient(rpc),
 		rpc:    rpc,
+		admin:  rpcapi.NewAdmin(rpc),
+		eth:    rpcapi.NewEth(rpc),
 	}
+}
+
+func (c *client) Eth() rpcapi.Eth {
+	return c.eth
+}
+
+func (c *client) Admin() rpcapi.Admin {
+	return c.admin
 }
 
 // Close closes an existing RPC connection.
@@ -75,42 +87,6 @@ func (c *client) BlockNumber(ctx context.Context) (*big.Int, error) {
 	}
 	h, err := hexutil.DecodeBig(r)
 	return h, err
-}
-
-// ----------------------------------------------------------------------------
-// admin
-
-// AddPeer connects to the given nodeURL.
-func (c *client) AddPeer(ctx context.Context, nodeURL string) error {
-	var r bool
-	// TODO: Result needs to be verified
-	// The response data type are bytes, but we cannot parse...
-	err := c.rpc.CallContext(ctx, &r, "admin_addPeer", nodeURL)
-	if err != nil {
-		return err
-	}
-	return err
-}
-
-// AdminPeers returns the number of connected peers.
-func (c *client) AdminPeers(ctx context.Context) ([]*p2p.PeerInfo, error) {
-	var r []*p2p.PeerInfo
-	// The response data type are bytes, but we cannot parse...
-	err := c.rpc.CallContext(ctx, &r, "admin_peers")
-	if err != nil {
-		return nil, err
-	}
-	return r, err
-}
-
-// NodeInfo gathers and returns a collection of metadata known about the host.
-func (c *client) NodeInfo(ctx context.Context) (*p2p.PeerInfo, error) {
-	var r *p2p.PeerInfo
-	err := c.rpc.CallContext(ctx, &r, "admin_nodeInfo")
-	if err != nil {
-		return nil, err
-	}
-	return r, err
 }
 
 // ----------------------------------------------------------------------------
