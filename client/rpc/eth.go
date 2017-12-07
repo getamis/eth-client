@@ -7,23 +7,27 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	client "github.com/ethereum/go-ethereum/rpc"
+	ethrpc "github.com/ethereum/go-ethereum/rpc"
 )
 
 //go:generate mockgen -source=eth.go -destination=mock_eth.go -package=rpc
 type Eth interface {
 	PublicTransactionPool
 	PublicEthereum
+	PublicBlockChain
 }
 
 type eth struct {
 	PublicTransactionPool
 	PublicEthereum
+	PublicBlockChain
 }
 
-func NewEth(client *client.Client) Eth {
+func NewEth(client *ethrpc.Client) Eth {
 	return &eth{
 		PublicTransactionPool: NewPublicTransactionPool(client),
+		PublicEthereum:        NewPublicEthereum(client),
+		PublicBlockChain:      NewPublicBlockChain(client),
 	}
 }
 
@@ -112,10 +116,10 @@ type PublicTransactionPool interface {
 }
 
 type publicTransactionPool struct {
-	client *client.Client
+	client *ethrpc.Client
 }
 
-func NewPublicTransactionPool(client *client.Client) PublicTransactionPool {
+func NewPublicTransactionPool(client *ethrpc.Client) PublicTransactionPool {
 	return &publicTransactionPool{
 		client: client,
 	}
@@ -334,17 +338,17 @@ type PublicEthereum interface {
 }
 
 type publicEthereum struct {
-	client *client.Client
+	client *ethrpc.Client
 }
 
-func NewPublicEthereum(client *client.Client) PublicEthereum {
+func NewPublicEthereum(client *ethrpc.Client) PublicEthereum {
 	return &publicEthereum{
 		client: client,
 	}
 }
 
 // GasPrice returns a suggestion for a gas price.
-func (pub *publicTransactionPool) GasPrice(ctx context.Context) (*big.Int, error) {
+func (pub *publicEthereum) GasPrice(ctx context.Context) (*big.Int, error) {
 	var r *big.Int
 	err := pub.client.CallContext(ctx, &r, "eth_gasPrice")
 	if err != nil {
@@ -355,7 +359,7 @@ func (pub *publicTransactionPool) GasPrice(ctx context.Context) (*big.Int, error
 }
 
 // ProtocolVersion returns the current Ethereum protocol version this node supports
-func (pub *publicTransactionPool) ProtocolVersion(ctx context.Context) (hexutil.Uint, error) {
+func (pub *publicEthereum) ProtocolVersion(ctx context.Context) (hexutil.Uint, error) {
 	var r hexutil.Uint
 	err := pub.client.CallContext(ctx, &r, "eth_protocolVersion")
 	if err != nil {
@@ -371,7 +375,7 @@ func (pub *publicTransactionPool) ProtocolVersion(ctx context.Context) (hexutil.
 // - highestBlock:  block number of the highest block header this node has received from peers
 // - pulledStates:  number of state entries processed until now
 // - knownStates:   number of known state entries that still need to be pulled
-func (pub *publicTransactionPool) Syncing(ctx context.Context) (interface{}, error) {
+func (pub *publicEthereum) Syncing(ctx context.Context) (interface{}, error) {
 	var r interface{}
 	err := pub.client.CallContext(ctx, &r, "eth_syncing")
 	if err != nil {
@@ -381,7 +385,7 @@ func (pub *publicTransactionPool) Syncing(ctx context.Context) (interface{}, err
 }
 
 // Etherbase is the address that mining rewards will be send to
-func (pub *publicTransactionPool) Etherbase(ctx context.Context) (common.Address, error) {
+func (pub *publicEthereum) Etherbase(ctx context.Context) (common.Address, error) {
 	var r common.Address
 	err := pub.client.CallContext(ctx, &r, "eth_etherbase")
 	if err != nil {
@@ -391,7 +395,7 @@ func (pub *publicTransactionPool) Etherbase(ctx context.Context) (common.Address
 }
 
 // Coinbase is the address that mining rewards will be send to (alias for Etherbase)
-func (pub *publicTransactionPool) Coinbase(ctx context.Context) (common.Address, error) {
+func (pub *publicEthereum) Coinbase(ctx context.Context) (common.Address, error) {
 	var r common.Address
 	err := pub.client.CallContext(ctx, &r, "eth_coinbase")
 	if err != nil {
@@ -401,9 +405,207 @@ func (pub *publicTransactionPool) Coinbase(ctx context.Context) (common.Address,
 }
 
 // Hashrate returns the POW hashrate
-func (pub *publicTransactionPool) Hashrate(ctx context.Context) (hexutil.Uint64, error) {
+func (pub *publicEthereum) Hashrate(ctx context.Context) (hexutil.Uint64, error) {
 	var r hexutil.Uint64
 	err := pub.client.CallContext(ctx, &r, "eth_hashrate")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// CallArgs represents the arguments for a call.
+type CallArgs struct {
+	From     common.Address `json:"from"`
+	To       common.Address `json:"to"`
+	Gas      hexutil.Big    `json:"gas"`
+	GasPrice hexutil.Big    `json:"gasPrice"`
+	Value    hexutil.Big    `json:"value"`
+	Data     hexutil.Bytes  `json:"data"`
+}
+
+type PublicBlockChain interface {
+	// BlockNumber returns the block number of the chain head.
+	BlockNumber(ctx context.Context) (*big.Int, error)
+
+	// GetBalance returns the amount of wei for the given address in the state of the
+	// given block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta
+	// block numbers are also allowed.
+	GetBalance(ctx context.Context, address common.Address, blockNr string) (*big.Int, error)
+
+	// GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
+	// transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+	GetBlockByNumber(ctx context.Context, blockNr string, fullTx bool) (map[string]interface{}, error)
+
+	// GetBlockByHash returns the requested block. When fullTx is true all transactions in the block are returned in full
+	// detail, otherwise only the transaction hash is returned.
+	GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error)
+
+	// GetUncleByBlockNumberAndIndex returns the uncle block for the given block hash and index. When fullTx is true
+	// all transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+	GetUncleByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (map[string]interface{}, error)
+
+	// GetUncleByBlockHashAndIndex returns the uncle block for the given block hash and index. When fullTx is true
+	// all transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+	GetUncleByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (map[string]interface{}, error)
+
+	// GetUncleCountByBlockNumber returns number of uncles in the block for the given block number
+	GetUncleCountByBlockNumber(ctx context.Context, blockNr string) (*hexutil.Uint, error)
+
+	// GetUncleCountByBlockHash returns number of uncles in the block for the given block hash
+	GetUncleCountByBlockHash(ctx context.Context, blockHash common.Hash) (*hexutil.Uint, error)
+
+	// GetCode returns the code stored at the given address in the state for the given block number.
+	GetCode(ctx context.Context, address common.Address, blockNr string) (hexutil.Bytes, error)
+
+	// GetStorageAt returns the storage from the state at the given address, key and
+	// block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta block
+	// numbers are also allowed.
+	GetStorageAt(ctx context.Context, address common.Address, key string, blockNr string) (hexutil.Bytes, error)
+
+	// Call executes the given transaction on the state for the given block number.
+	// It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
+	Call(ctx context.Context, args CallArgs, blockNr string) (hexutil.Bytes, error)
+
+	// EstimateGas returns an estimate of the amount of gas needed to execute the
+	// given transaction against the current pending block.
+	EstimateGas(ctx context.Context, args CallArgs) (*hexutil.Big, error)
+}
+
+type publicBlockChain struct {
+	client *ethrpc.Client
+}
+
+func NewPublicBlockChain(client *ethrpc.Client) PublicBlockChain {
+	return &publicBlockChain{
+		client: client,
+	}
+}
+
+// BlockNumber returns the block number of the chain head.
+func (pub *publicBlockChain) BlockNumber(ctx context.Context) (*big.Int, error) {
+	var r *big.Int
+	err := pub.client.CallContext(ctx, &r, "eth_blockNumber")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetBalance returns the amount of wei for the given address in the state of the
+// given block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta
+// block numbers are also allowed.
+func (pub *publicBlockChain) GetBalance(ctx context.Context, address common.Address, blockNr string) (*big.Int, error) {
+	var r *big.Int
+	err := pub.client.CallContext(ctx, &r, "eth_getBalance")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetBlockByNumber returns the requested block. When blockNr is -1 the chain head is returned. When fullTx is true all
+// transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+func (pub *publicBlockChain) GetBlockByNumber(ctx context.Context, blockNr string, fullTx bool) (map[string]interface{}, error) {
+	var r map[string]interface{}
+	err := pub.client.CallContext(ctx, &r, "eth_getBlockByNumber")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetBlockByHash returns the requested block. When fullTx is true all transactions in the block are returned in full
+// detail, otherwise only the transaction hash is returned.
+func (pub *publicBlockChain) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
+	var r map[string]interface{}
+	err := pub.client.CallContext(ctx, &r, "eth_getBlockByHash")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetUncleByBlockNumberAndIndex returns the uncle block for the given block hash and index. When fullTx is true
+// all transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+func (pub *publicBlockChain) GetUncleByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (map[string]interface{}, error) {
+	var r map[string]interface{}
+	err := pub.client.CallContext(ctx, &r, "eth_getUncleByBlockNumberAndIndex")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetUncleByBlockHashAndIndex returns the uncle block for the given block hash and index. When fullTx is true
+// all transactions in the block are returned in full detail, otherwise only the transaction hash is returned.
+func (pub *publicBlockChain) GetUncleByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (map[string]interface{}, error) {
+	var r map[string]interface{}
+	err := pub.client.CallContext(ctx, &r, "eth_getUncleByBlockHashAndIndex")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetUncleCountByBlockNumber returns number of uncles in the block for the given block number
+func (pub *publicBlockChain) GetUncleCountByBlockNumber(ctx context.Context, blockNr string) (*hexutil.Uint, error) {
+	var r *hexutil.Uint
+	err := pub.client.CallContext(ctx, &r, "eth_getUncleCountByBlockNumber")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetUncleCountByBlockHash returns number of uncles in the block for the given block hash
+func (pub *publicBlockChain) GetUncleCountByBlockHash(ctx context.Context, blockHash common.Hash) (*hexutil.Uint, error) {
+	var r *hexutil.Uint
+	err := pub.client.CallContext(ctx, &r, "eth_getUncleCountByBlockHash")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetCode returns the code stored at the given address in the state for the given block number.
+func (pub *publicBlockChain) GetCode(ctx context.Context, address common.Address, blockNr string) (hexutil.Bytes, error) {
+	var r hexutil.Bytes
+	err := pub.client.CallContext(ctx, &r, "eth_getCode")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// GetStorageAt returns the storage from the state at the given address, key and
+// block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta block
+// numbers are also allowed.
+func (pub *publicBlockChain) GetStorageAt(ctx context.Context, address common.Address, key string, blockNr string) (hexutil.Bytes, error) {
+	var r hexutil.Bytes
+	err := pub.client.CallContext(ctx, &r, "eth_getStorageAt")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// Call executes the given transaction on the state for the given block number.
+// It doesn't make and changes in the state/blockchain and is useful to execute and retrieve values.
+func (pub *publicBlockChain) Call(ctx context.Context, args CallArgs, blockNr string) (hexutil.Bytes, error) {
+	var r hexutil.Bytes
+	err := pub.client.CallContext(ctx, &r, "eth_call")
+	if err != nil {
+		return r, err
+	}
+	return r, nil
+}
+
+// EstimateGas returns an estimate of the amount of gas needed to execute the
+// given transaction against the current pending block.
+func (pub *publicBlockChain) EstimateGas(ctx context.Context, args CallArgs) (*hexutil.Big, error) {
+	var r *hexutil.Big
+	err := pub.client.CallContext(ctx, &r, "eth_estimateGas")
 	if err != nil {
 		return r, err
 	}
