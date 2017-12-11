@@ -8,7 +8,11 @@ import (
 	context "context"
 	common "github.com/ethereum/go-ethereum/common"
 	hexutil "github.com/ethereum/go-ethereum/common/hexutil"
+	types "github.com/ethereum/go-ethereum/core/types"
+	filters "github.com/ethereum/go-ethereum/eth/filters"
+	rpc "github.com/ethereum/go-ethereum/rpc"
 	gomock "github.com/golang/mock/gomock"
+	big "math/big"
 	reflect "reflect"
 )
 
@@ -87,32 +91,6 @@ func (mr *MockEthMockRecorder) GetTransactionByBlockHashAndIndex(ctx, blockHash,
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByBlockHashAndIndex", reflect.TypeOf((*MockEth)(nil).GetTransactionByBlockHashAndIndex), ctx, blockHash, index)
 }
 
-// GetRawTransactionByBlockNumberAndIndex mocks base method
-func (m *MockEth) GetRawTransactionByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByBlockNumberAndIndex", ctx, blockNr, index)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByBlockNumberAndIndex indicates an expected call of GetRawTransactionByBlockNumberAndIndex
-func (mr *MockEthMockRecorder) GetRawTransactionByBlockNumberAndIndex(ctx, blockNr, index interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByBlockNumberAndIndex", reflect.TypeOf((*MockEth)(nil).GetRawTransactionByBlockNumberAndIndex), ctx, blockNr, index)
-}
-
-// GetRawTransactionByBlockHashAndIndex mocks base method
-func (m *MockEth) GetRawTransactionByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByBlockHashAndIndex", ctx, blockHash, index)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByBlockHashAndIndex indicates an expected call of GetRawTransactionByBlockHashAndIndex
-func (mr *MockEthMockRecorder) GetRawTransactionByBlockHashAndIndex(ctx, blockHash, index interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByBlockHashAndIndex", reflect.TypeOf((*MockEth)(nil).GetRawTransactionByBlockHashAndIndex), ctx, blockHash, index)
-}
-
 // GetTransactionCount mocks base method
 func (m *MockEth) GetTransactionCount(ctx context.Context, address common.Address, blockNr string) (*hexutil.Uint64, error) {
 	ret := m.ctrl.Call(m, "GetTransactionCount", ctx, address, blockNr)
@@ -137,19 +115,6 @@ func (m *MockEth) GetTransactionByHash(ctx context.Context, hash common.Hash) (*
 // GetTransactionByHash indicates an expected call of GetTransactionByHash
 func (mr *MockEthMockRecorder) GetTransactionByHash(ctx, hash interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByHash", reflect.TypeOf((*MockEth)(nil).GetTransactionByHash), ctx, hash)
-}
-
-// GetRawTransactionByHash mocks base method
-func (m *MockEth) GetRawTransactionByHash(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByHash indicates an expected call of GetRawTransactionByHash
-func (mr *MockEthMockRecorder) GetRawTransactionByHash(ctx, hash interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByHash", reflect.TypeOf((*MockEth)(nil).GetRawTransactionByHash), ctx, hash)
 }
 
 // GetTransactionReceipt mocks base method
@@ -217,30 +182,394 @@ func (mr *MockEthMockRecorder) SignTransaction(ctx, args interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockEth)(nil).SignTransaction), ctx, args)
 }
 
-// PendingTransactions mocks base method
-func (m *MockEth) PendingTransactions(ctx context.Context) ([]*RPCTransaction, error) {
-	ret := m.ctrl.Call(m, "PendingTransactions", ctx)
-	ret0, _ := ret[0].([]*RPCTransaction)
+// GasPrice mocks base method
+func (m *MockEth) GasPrice(ctx context.Context) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "GasPrice", ctx)
+	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PendingTransactions indicates an expected call of PendingTransactions
-func (mr *MockEthMockRecorder) PendingTransactions(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingTransactions", reflect.TypeOf((*MockEth)(nil).PendingTransactions), ctx)
+// GasPrice indicates an expected call of GasPrice
+func (mr *MockEthMockRecorder) GasPrice(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GasPrice", reflect.TypeOf((*MockEth)(nil).GasPrice), ctx)
 }
 
-// Resend mocks base method
-func (m *MockEth) Resend(ctx context.Context, sendArgs SendTxArgs, gasPrice, gasLimit hexutil.Big) (common.Hash, error) {
-	ret := m.ctrl.Call(m, "Resend", ctx, sendArgs, gasPrice, gasLimit)
-	ret0, _ := ret[0].(common.Hash)
+// ProtocolVersion mocks base method
+func (m *MockEth) ProtocolVersion(ctx context.Context) (hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "ProtocolVersion", ctx)
+	ret0, _ := ret[0].(hexutil.Uint)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Resend indicates an expected call of Resend
-func (mr *MockEthMockRecorder) Resend(ctx, sendArgs, gasPrice, gasLimit interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resend", reflect.TypeOf((*MockEth)(nil).Resend), ctx, sendArgs, gasPrice, gasLimit)
+// ProtocolVersion indicates an expected call of ProtocolVersion
+func (mr *MockEthMockRecorder) ProtocolVersion(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProtocolVersion", reflect.TypeOf((*MockEth)(nil).ProtocolVersion), ctx)
+}
+
+// Syncing mocks base method
+func (m *MockEth) Syncing(ctx context.Context) (interface{}, error) {
+	ret := m.ctrl.Call(m, "Syncing", ctx)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Syncing indicates an expected call of Syncing
+func (mr *MockEthMockRecorder) Syncing(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Syncing", reflect.TypeOf((*MockEth)(nil).Syncing), ctx)
+}
+
+// Coinbase mocks base method
+func (m *MockEth) Coinbase(ctx context.Context) (common.Address, error) {
+	ret := m.ctrl.Call(m, "Coinbase", ctx)
+	ret0, _ := ret[0].(common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Coinbase indicates an expected call of Coinbase
+func (mr *MockEthMockRecorder) Coinbase(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Coinbase", reflect.TypeOf((*MockEth)(nil).Coinbase), ctx)
+}
+
+// Hashrate mocks base method
+func (m *MockEth) Hashrate(ctx context.Context) (hexutil.Uint64, error) {
+	ret := m.ctrl.Call(m, "Hashrate", ctx)
+	ret0, _ := ret[0].(hexutil.Uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Hashrate indicates an expected call of Hashrate
+func (mr *MockEthMockRecorder) Hashrate(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Hashrate", reflect.TypeOf((*MockEth)(nil).Hashrate), ctx)
+}
+
+// BlockNumber mocks base method
+func (m *MockEth) BlockNumber(ctx context.Context) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "BlockNumber", ctx)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BlockNumber indicates an expected call of BlockNumber
+func (mr *MockEthMockRecorder) BlockNumber(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockNumber", reflect.TypeOf((*MockEth)(nil).BlockNumber), ctx)
+}
+
+// GetBalance mocks base method
+func (m *MockEth) GetBalance(ctx context.Context, address common.Address, blockNr string) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "GetBalance", ctx, address, blockNr)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBalance indicates an expected call of GetBalance
+func (mr *MockEthMockRecorder) GetBalance(ctx, address, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockEth)(nil).GetBalance), ctx, address, blockNr)
+}
+
+// GetBlockByNumber mocks base method
+func (m *MockEth) GetBlockByNumber(ctx context.Context, blockNr string, fullTx bool) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetBlockByNumber", ctx, blockNr, fullTx)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBlockByNumber indicates an expected call of GetBlockByNumber
+func (mr *MockEthMockRecorder) GetBlockByNumber(ctx, blockNr, fullTx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockByNumber", reflect.TypeOf((*MockEth)(nil).GetBlockByNumber), ctx, blockNr, fullTx)
+}
+
+// GetBlockByHash mocks base method
+func (m *MockEth) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetBlockByHash", ctx, blockHash, fullTx)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBlockByHash indicates an expected call of GetBlockByHash
+func (mr *MockEthMockRecorder) GetBlockByHash(ctx, blockHash, fullTx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockByHash", reflect.TypeOf((*MockEth)(nil).GetBlockByHash), ctx, blockHash, fullTx)
+}
+
+// GetUncleByBlockNumberAndIndex mocks base method
+func (m *MockEth) GetUncleByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetUncleByBlockNumberAndIndex", ctx, blockNr, index)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleByBlockNumberAndIndex indicates an expected call of GetUncleByBlockNumberAndIndex
+func (mr *MockEthMockRecorder) GetUncleByBlockNumberAndIndex(ctx, blockNr, index interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleByBlockNumberAndIndex", reflect.TypeOf((*MockEth)(nil).GetUncleByBlockNumberAndIndex), ctx, blockNr, index)
+}
+
+// GetUncleByBlockHashAndIndex mocks base method
+func (m *MockEth) GetUncleByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetUncleByBlockHashAndIndex", ctx, blockHash, index)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleByBlockHashAndIndex indicates an expected call of GetUncleByBlockHashAndIndex
+func (mr *MockEthMockRecorder) GetUncleByBlockHashAndIndex(ctx, blockHash, index interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleByBlockHashAndIndex", reflect.TypeOf((*MockEth)(nil).GetUncleByBlockHashAndIndex), ctx, blockHash, index)
+}
+
+// GetUncleCountByBlockNumber mocks base method
+func (m *MockEth) GetUncleCountByBlockNumber(ctx context.Context, blockNr string) (*hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "GetUncleCountByBlockNumber", ctx, blockNr)
+	ret0, _ := ret[0].(*hexutil.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleCountByBlockNumber indicates an expected call of GetUncleCountByBlockNumber
+func (mr *MockEthMockRecorder) GetUncleCountByBlockNumber(ctx, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleCountByBlockNumber", reflect.TypeOf((*MockEth)(nil).GetUncleCountByBlockNumber), ctx, blockNr)
+}
+
+// GetUncleCountByBlockHash mocks base method
+func (m *MockEth) GetUncleCountByBlockHash(ctx context.Context, blockHash common.Hash) (*hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "GetUncleCountByBlockHash", ctx, blockHash)
+	ret0, _ := ret[0].(*hexutil.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleCountByBlockHash indicates an expected call of GetUncleCountByBlockHash
+func (mr *MockEthMockRecorder) GetUncleCountByBlockHash(ctx, blockHash interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleCountByBlockHash", reflect.TypeOf((*MockEth)(nil).GetUncleCountByBlockHash), ctx, blockHash)
+}
+
+// GetCode mocks base method
+func (m *MockEth) GetCode(ctx context.Context, address common.Address, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "GetCode", ctx, address, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCode indicates an expected call of GetCode
+func (mr *MockEthMockRecorder) GetCode(ctx, address, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCode", reflect.TypeOf((*MockEth)(nil).GetCode), ctx, address, blockNr)
+}
+
+// GetStorageAt mocks base method
+func (m *MockEth) GetStorageAt(ctx context.Context, address common.Address, key, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "GetStorageAt", ctx, address, key, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorageAt indicates an expected call of GetStorageAt
+func (mr *MockEthMockRecorder) GetStorageAt(ctx, address, key, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageAt", reflect.TypeOf((*MockEth)(nil).GetStorageAt), ctx, address, key, blockNr)
+}
+
+// Call mocks base method
+func (m *MockEth) Call(ctx context.Context, args CallArgs, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "Call", ctx, args, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Call indicates an expected call of Call
+func (mr *MockEthMockRecorder) Call(ctx, args, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockEth)(nil).Call), ctx, args, blockNr)
+}
+
+// EstimateGas mocks base method
+func (m *MockEth) EstimateGas(ctx context.Context, args CallArgs) (*hexutil.Big, error) {
+	ret := m.ctrl.Call(m, "EstimateGas", ctx, args)
+	ret0, _ := ret[0].(*hexutil.Big)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EstimateGas indicates an expected call of EstimateGas
+func (mr *MockEthMockRecorder) EstimateGas(ctx, args interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateGas", reflect.TypeOf((*MockEth)(nil).EstimateGas), ctx, args)
+}
+
+// Accounts mocks base method
+func (m *MockEth) Accounts(arg0 context.Context) ([]common.Address, error) {
+	ret := m.ctrl.Call(m, "Accounts", arg0)
+	ret0, _ := ret[0].([]common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Accounts indicates an expected call of Accounts
+func (mr *MockEthMockRecorder) Accounts(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Accounts", reflect.TypeOf((*MockEth)(nil).Accounts), arg0)
+}
+
+// Mining mocks base method
+func (m *MockEth) Mining(ctx context.Context) (bool, error) {
+	ret := m.ctrl.Call(m, "Mining", ctx)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Mining indicates an expected call of Mining
+func (mr *MockEthMockRecorder) Mining(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mining", reflect.TypeOf((*MockEth)(nil).Mining), ctx)
+}
+
+// SubmitWork mocks base method
+func (m *MockEth) SubmitWork(ctx context.Context, nonce types.BlockNonce, solution, digest common.Hash) (bool, error) {
+	ret := m.ctrl.Call(m, "SubmitWork", ctx, nonce, solution, digest)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubmitWork indicates an expected call of SubmitWork
+func (mr *MockEthMockRecorder) SubmitWork(ctx, nonce, solution, digest interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitWork", reflect.TypeOf((*MockEth)(nil).SubmitWork), ctx, nonce, solution, digest)
+}
+
+// GetWork mocks base method
+func (m *MockEth) GetWork(ctx context.Context) ([3]string, error) {
+	ret := m.ctrl.Call(m, "GetWork", ctx)
+	ret0, _ := ret[0].([3]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWork indicates an expected call of GetWork
+func (mr *MockEthMockRecorder) GetWork(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWork", reflect.TypeOf((*MockEth)(nil).GetWork), ctx)
+}
+
+// SubmitHashrate mocks base method
+func (m *MockEth) SubmitHashrate(ctx context.Context, hashrate hexutil.Uint64, id common.Hash) (bool, error) {
+	ret := m.ctrl.Call(m, "SubmitHashrate", ctx, hashrate, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubmitHashrate indicates an expected call of SubmitHashrate
+func (mr *MockEthMockRecorder) SubmitHashrate(ctx, hashrate, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitHashrate", reflect.TypeOf((*MockEth)(nil).SubmitHashrate), ctx, hashrate, id)
+}
+
+// NewPendingTransactionFilter mocks base method
+func (m *MockEth) NewPendingTransactionFilter(ctx context.Context) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewPendingTransactionFilter", ctx)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewPendingTransactionFilter indicates an expected call of NewPendingTransactionFilter
+func (mr *MockEthMockRecorder) NewPendingTransactionFilter(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewPendingTransactionFilter", reflect.TypeOf((*MockEth)(nil).NewPendingTransactionFilter), ctx)
+}
+
+// NewBlockFilter mocks base method
+func (m *MockEth) NewBlockFilter(ctx context.Context) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewBlockFilter", ctx)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewBlockFilter indicates an expected call of NewBlockFilter
+func (mr *MockEthMockRecorder) NewBlockFilter(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewBlockFilter", reflect.TypeOf((*MockEth)(nil).NewBlockFilter), ctx)
+}
+
+// Logs mocks base method
+func (m *MockEth) Logs(ctx context.Context, crit filters.FilterCriteria) (*rpc.Subscription, error) {
+	ret := m.ctrl.Call(m, "Logs", ctx, crit)
+	ret0, _ := ret[0].(*rpc.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Logs indicates an expected call of Logs
+func (mr *MockEthMockRecorder) Logs(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockEth)(nil).Logs), ctx, crit)
+}
+
+// NewFilter mocks base method
+func (m *MockEth) NewFilter(ctx context.Context, crit filters.FilterCriteria) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewFilter", ctx, crit)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewFilter indicates an expected call of NewFilter
+func (mr *MockEthMockRecorder) NewFilter(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewFilter", reflect.TypeOf((*MockEth)(nil).NewFilter), ctx, crit)
+}
+
+// GetLogs mocks base method
+func (m *MockEth) GetLogs(ctx context.Context, crit filters.FilterCriteria) ([]*types.Log, error) {
+	ret := m.ctrl.Call(m, "GetLogs", ctx, crit)
+	ret0, _ := ret[0].([]*types.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLogs indicates an expected call of GetLogs
+func (mr *MockEthMockRecorder) GetLogs(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogs", reflect.TypeOf((*MockEth)(nil).GetLogs), ctx, crit)
+}
+
+// UninstallFilter mocks base method
+func (m *MockEth) UninstallFilter(ctx context.Context, id rpc.ID) (bool, error) {
+	ret := m.ctrl.Call(m, "UninstallFilter", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UninstallFilter indicates an expected call of UninstallFilter
+func (mr *MockEthMockRecorder) UninstallFilter(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UninstallFilter", reflect.TypeOf((*MockEth)(nil).UninstallFilter), ctx, id)
+}
+
+// GetFilterLogs mocks base method
+func (m *MockEth) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*types.Log, error) {
+	ret := m.ctrl.Call(m, "GetFilterLogs", ctx, id)
+	ret0, _ := ret[0].([]*types.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilterLogs indicates an expected call of GetFilterLogs
+func (mr *MockEthMockRecorder) GetFilterLogs(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilterLogs", reflect.TypeOf((*MockEth)(nil).GetFilterLogs), ctx, id)
+}
+
+// GetFilterChanges mocks base method
+func (m *MockEth) GetFilterChanges(ctx context.Context, id rpc.ID) (interface{}, error) {
+	ret := m.ctrl.Call(m, "GetFilterChanges", ctx, id)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilterChanges indicates an expected call of GetFilterChanges
+func (mr *MockEthMockRecorder) GetFilterChanges(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilterChanges", reflect.TypeOf((*MockEth)(nil).GetFilterChanges), ctx, id)
 }
 
 // MockPublicTransactionPool is a mock of PublicTransactionPool interface
@@ -318,32 +647,6 @@ func (mr *MockPublicTransactionPoolMockRecorder) GetTransactionByBlockHashAndInd
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByBlockHashAndIndex", reflect.TypeOf((*MockPublicTransactionPool)(nil).GetTransactionByBlockHashAndIndex), ctx, blockHash, index)
 }
 
-// GetRawTransactionByBlockNumberAndIndex mocks base method
-func (m *MockPublicTransactionPool) GetRawTransactionByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByBlockNumberAndIndex", ctx, blockNr, index)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByBlockNumberAndIndex indicates an expected call of GetRawTransactionByBlockNumberAndIndex
-func (mr *MockPublicTransactionPoolMockRecorder) GetRawTransactionByBlockNumberAndIndex(ctx, blockNr, index interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByBlockNumberAndIndex", reflect.TypeOf((*MockPublicTransactionPool)(nil).GetRawTransactionByBlockNumberAndIndex), ctx, blockNr, index)
-}
-
-// GetRawTransactionByBlockHashAndIndex mocks base method
-func (m *MockPublicTransactionPool) GetRawTransactionByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByBlockHashAndIndex", ctx, blockHash, index)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByBlockHashAndIndex indicates an expected call of GetRawTransactionByBlockHashAndIndex
-func (mr *MockPublicTransactionPoolMockRecorder) GetRawTransactionByBlockHashAndIndex(ctx, blockHash, index interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByBlockHashAndIndex", reflect.TypeOf((*MockPublicTransactionPool)(nil).GetRawTransactionByBlockHashAndIndex), ctx, blockHash, index)
-}
-
 // GetTransactionCount mocks base method
 func (m *MockPublicTransactionPool) GetTransactionCount(ctx context.Context, address common.Address, blockNr string) (*hexutil.Uint64, error) {
 	ret := m.ctrl.Call(m, "GetTransactionCount", ctx, address, blockNr)
@@ -368,19 +671,6 @@ func (m *MockPublicTransactionPool) GetTransactionByHash(ctx context.Context, ha
 // GetTransactionByHash indicates an expected call of GetTransactionByHash
 func (mr *MockPublicTransactionPoolMockRecorder) GetTransactionByHash(ctx, hash interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTransactionByHash", reflect.TypeOf((*MockPublicTransactionPool)(nil).GetTransactionByHash), ctx, hash)
-}
-
-// GetRawTransactionByHash mocks base method
-func (m *MockPublicTransactionPool) GetRawTransactionByHash(ctx context.Context, hash common.Hash) (hexutil.Bytes, error) {
-	ret := m.ctrl.Call(m, "GetRawTransactionByHash", ctx, hash)
-	ret0, _ := ret[0].(hexutil.Bytes)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetRawTransactionByHash indicates an expected call of GetRawTransactionByHash
-func (mr *MockPublicTransactionPoolMockRecorder) GetRawTransactionByHash(ctx, hash interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRawTransactionByHash", reflect.TypeOf((*MockPublicTransactionPool)(nil).GetRawTransactionByHash), ctx, hash)
 }
 
 // GetTransactionReceipt mocks base method
@@ -448,28 +738,507 @@ func (mr *MockPublicTransactionPoolMockRecorder) SignTransaction(ctx, args inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignTransaction", reflect.TypeOf((*MockPublicTransactionPool)(nil).SignTransaction), ctx, args)
 }
 
-// PendingTransactions mocks base method
-func (m *MockPublicTransactionPool) PendingTransactions(ctx context.Context) ([]*RPCTransaction, error) {
-	ret := m.ctrl.Call(m, "PendingTransactions", ctx)
-	ret0, _ := ret[0].([]*RPCTransaction)
+// MockPublicEthereum is a mock of PublicEthereum interface
+type MockPublicEthereum struct {
+	ctrl     *gomock.Controller
+	recorder *MockPublicEthereumMockRecorder
+}
+
+// MockPublicEthereumMockRecorder is the mock recorder for MockPublicEthereum
+type MockPublicEthereumMockRecorder struct {
+	mock *MockPublicEthereum
+}
+
+// NewMockPublicEthereum creates a new mock instance
+func NewMockPublicEthereum(ctrl *gomock.Controller) *MockPublicEthereum {
+	mock := &MockPublicEthereum{ctrl: ctrl}
+	mock.recorder = &MockPublicEthereumMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPublicEthereum) EXPECT() *MockPublicEthereumMockRecorder {
+	return m.recorder
+}
+
+// GasPrice mocks base method
+func (m *MockPublicEthereum) GasPrice(ctx context.Context) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "GasPrice", ctx)
+	ret0, _ := ret[0].(*big.Int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// PendingTransactions indicates an expected call of PendingTransactions
-func (mr *MockPublicTransactionPoolMockRecorder) PendingTransactions(ctx interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PendingTransactions", reflect.TypeOf((*MockPublicTransactionPool)(nil).PendingTransactions), ctx)
+// GasPrice indicates an expected call of GasPrice
+func (mr *MockPublicEthereumMockRecorder) GasPrice(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GasPrice", reflect.TypeOf((*MockPublicEthereum)(nil).GasPrice), ctx)
 }
 
-// Resend mocks base method
-func (m *MockPublicTransactionPool) Resend(ctx context.Context, sendArgs SendTxArgs, gasPrice, gasLimit hexutil.Big) (common.Hash, error) {
-	ret := m.ctrl.Call(m, "Resend", ctx, sendArgs, gasPrice, gasLimit)
-	ret0, _ := ret[0].(common.Hash)
+// ProtocolVersion mocks base method
+func (m *MockPublicEthereum) ProtocolVersion(ctx context.Context) (hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "ProtocolVersion", ctx)
+	ret0, _ := ret[0].(hexutil.Uint)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Resend indicates an expected call of Resend
-func (mr *MockPublicTransactionPoolMockRecorder) Resend(ctx, sendArgs, gasPrice, gasLimit interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resend", reflect.TypeOf((*MockPublicTransactionPool)(nil).Resend), ctx, sendArgs, gasPrice, gasLimit)
+// ProtocolVersion indicates an expected call of ProtocolVersion
+func (mr *MockPublicEthereumMockRecorder) ProtocolVersion(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ProtocolVersion", reflect.TypeOf((*MockPublicEthereum)(nil).ProtocolVersion), ctx)
+}
+
+// Syncing mocks base method
+func (m *MockPublicEthereum) Syncing(ctx context.Context) (interface{}, error) {
+	ret := m.ctrl.Call(m, "Syncing", ctx)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Syncing indicates an expected call of Syncing
+func (mr *MockPublicEthereumMockRecorder) Syncing(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Syncing", reflect.TypeOf((*MockPublicEthereum)(nil).Syncing), ctx)
+}
+
+// Coinbase mocks base method
+func (m *MockPublicEthereum) Coinbase(ctx context.Context) (common.Address, error) {
+	ret := m.ctrl.Call(m, "Coinbase", ctx)
+	ret0, _ := ret[0].(common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Coinbase indicates an expected call of Coinbase
+func (mr *MockPublicEthereumMockRecorder) Coinbase(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Coinbase", reflect.TypeOf((*MockPublicEthereum)(nil).Coinbase), ctx)
+}
+
+// Hashrate mocks base method
+func (m *MockPublicEthereum) Hashrate(ctx context.Context) (hexutil.Uint64, error) {
+	ret := m.ctrl.Call(m, "Hashrate", ctx)
+	ret0, _ := ret[0].(hexutil.Uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Hashrate indicates an expected call of Hashrate
+func (mr *MockPublicEthereumMockRecorder) Hashrate(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Hashrate", reflect.TypeOf((*MockPublicEthereum)(nil).Hashrate), ctx)
+}
+
+// MockPublicBlockChain is a mock of PublicBlockChain interface
+type MockPublicBlockChain struct {
+	ctrl     *gomock.Controller
+	recorder *MockPublicBlockChainMockRecorder
+}
+
+// MockPublicBlockChainMockRecorder is the mock recorder for MockPublicBlockChain
+type MockPublicBlockChainMockRecorder struct {
+	mock *MockPublicBlockChain
+}
+
+// NewMockPublicBlockChain creates a new mock instance
+func NewMockPublicBlockChain(ctrl *gomock.Controller) *MockPublicBlockChain {
+	mock := &MockPublicBlockChain{ctrl: ctrl}
+	mock.recorder = &MockPublicBlockChainMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPublicBlockChain) EXPECT() *MockPublicBlockChainMockRecorder {
+	return m.recorder
+}
+
+// BlockNumber mocks base method
+func (m *MockPublicBlockChain) BlockNumber(ctx context.Context) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "BlockNumber", ctx)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// BlockNumber indicates an expected call of BlockNumber
+func (mr *MockPublicBlockChainMockRecorder) BlockNumber(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockNumber", reflect.TypeOf((*MockPublicBlockChain)(nil).BlockNumber), ctx)
+}
+
+// GetBalance mocks base method
+func (m *MockPublicBlockChain) GetBalance(ctx context.Context, address common.Address, blockNr string) (*big.Int, error) {
+	ret := m.ctrl.Call(m, "GetBalance", ctx, address, blockNr)
+	ret0, _ := ret[0].(*big.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBalance indicates an expected call of GetBalance
+func (mr *MockPublicBlockChainMockRecorder) GetBalance(ctx, address, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockPublicBlockChain)(nil).GetBalance), ctx, address, blockNr)
+}
+
+// GetBlockByNumber mocks base method
+func (m *MockPublicBlockChain) GetBlockByNumber(ctx context.Context, blockNr string, fullTx bool) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetBlockByNumber", ctx, blockNr, fullTx)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBlockByNumber indicates an expected call of GetBlockByNumber
+func (mr *MockPublicBlockChainMockRecorder) GetBlockByNumber(ctx, blockNr, fullTx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockByNumber", reflect.TypeOf((*MockPublicBlockChain)(nil).GetBlockByNumber), ctx, blockNr, fullTx)
+}
+
+// GetBlockByHash mocks base method
+func (m *MockPublicBlockChain) GetBlockByHash(ctx context.Context, blockHash common.Hash, fullTx bool) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetBlockByHash", ctx, blockHash, fullTx)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetBlockByHash indicates an expected call of GetBlockByHash
+func (mr *MockPublicBlockChainMockRecorder) GetBlockByHash(ctx, blockHash, fullTx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBlockByHash", reflect.TypeOf((*MockPublicBlockChain)(nil).GetBlockByHash), ctx, blockHash, fullTx)
+}
+
+// GetUncleByBlockNumberAndIndex mocks base method
+func (m *MockPublicBlockChain) GetUncleByBlockNumberAndIndex(ctx context.Context, blockNr string, index hexutil.Uint) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetUncleByBlockNumberAndIndex", ctx, blockNr, index)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleByBlockNumberAndIndex indicates an expected call of GetUncleByBlockNumberAndIndex
+func (mr *MockPublicBlockChainMockRecorder) GetUncleByBlockNumberAndIndex(ctx, blockNr, index interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleByBlockNumberAndIndex", reflect.TypeOf((*MockPublicBlockChain)(nil).GetUncleByBlockNumberAndIndex), ctx, blockNr, index)
+}
+
+// GetUncleByBlockHashAndIndex mocks base method
+func (m *MockPublicBlockChain) GetUncleByBlockHashAndIndex(ctx context.Context, blockHash common.Hash, index hexutil.Uint) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "GetUncleByBlockHashAndIndex", ctx, blockHash, index)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleByBlockHashAndIndex indicates an expected call of GetUncleByBlockHashAndIndex
+func (mr *MockPublicBlockChainMockRecorder) GetUncleByBlockHashAndIndex(ctx, blockHash, index interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleByBlockHashAndIndex", reflect.TypeOf((*MockPublicBlockChain)(nil).GetUncleByBlockHashAndIndex), ctx, blockHash, index)
+}
+
+// GetUncleCountByBlockNumber mocks base method
+func (m *MockPublicBlockChain) GetUncleCountByBlockNumber(ctx context.Context, blockNr string) (*hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "GetUncleCountByBlockNumber", ctx, blockNr)
+	ret0, _ := ret[0].(*hexutil.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleCountByBlockNumber indicates an expected call of GetUncleCountByBlockNumber
+func (mr *MockPublicBlockChainMockRecorder) GetUncleCountByBlockNumber(ctx, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleCountByBlockNumber", reflect.TypeOf((*MockPublicBlockChain)(nil).GetUncleCountByBlockNumber), ctx, blockNr)
+}
+
+// GetUncleCountByBlockHash mocks base method
+func (m *MockPublicBlockChain) GetUncleCountByBlockHash(ctx context.Context, blockHash common.Hash) (*hexutil.Uint, error) {
+	ret := m.ctrl.Call(m, "GetUncleCountByBlockHash", ctx, blockHash)
+	ret0, _ := ret[0].(*hexutil.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUncleCountByBlockHash indicates an expected call of GetUncleCountByBlockHash
+func (mr *MockPublicBlockChainMockRecorder) GetUncleCountByBlockHash(ctx, blockHash interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUncleCountByBlockHash", reflect.TypeOf((*MockPublicBlockChain)(nil).GetUncleCountByBlockHash), ctx, blockHash)
+}
+
+// GetCode mocks base method
+func (m *MockPublicBlockChain) GetCode(ctx context.Context, address common.Address, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "GetCode", ctx, address, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCode indicates an expected call of GetCode
+func (mr *MockPublicBlockChainMockRecorder) GetCode(ctx, address, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCode", reflect.TypeOf((*MockPublicBlockChain)(nil).GetCode), ctx, address, blockNr)
+}
+
+// GetStorageAt mocks base method
+func (m *MockPublicBlockChain) GetStorageAt(ctx context.Context, address common.Address, key, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "GetStorageAt", ctx, address, key, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetStorageAt indicates an expected call of GetStorageAt
+func (mr *MockPublicBlockChainMockRecorder) GetStorageAt(ctx, address, key, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageAt", reflect.TypeOf((*MockPublicBlockChain)(nil).GetStorageAt), ctx, address, key, blockNr)
+}
+
+// Call mocks base method
+func (m *MockPublicBlockChain) Call(ctx context.Context, args CallArgs, blockNr string) (hexutil.Bytes, error) {
+	ret := m.ctrl.Call(m, "Call", ctx, args, blockNr)
+	ret0, _ := ret[0].(hexutil.Bytes)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Call indicates an expected call of Call
+func (mr *MockPublicBlockChainMockRecorder) Call(ctx, args, blockNr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Call", reflect.TypeOf((*MockPublicBlockChain)(nil).Call), ctx, args, blockNr)
+}
+
+// EstimateGas mocks base method
+func (m *MockPublicBlockChain) EstimateGas(ctx context.Context, args CallArgs) (*hexutil.Big, error) {
+	ret := m.ctrl.Call(m, "EstimateGas", ctx, args)
+	ret0, _ := ret[0].(*hexutil.Big)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// EstimateGas indicates an expected call of EstimateGas
+func (mr *MockPublicBlockChainMockRecorder) EstimateGas(ctx, args interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EstimateGas", reflect.TypeOf((*MockPublicBlockChain)(nil).EstimateGas), ctx, args)
+}
+
+// MockPublicAccount is a mock of PublicAccount interface
+type MockPublicAccount struct {
+	ctrl     *gomock.Controller
+	recorder *MockPublicAccountMockRecorder
+}
+
+// MockPublicAccountMockRecorder is the mock recorder for MockPublicAccount
+type MockPublicAccountMockRecorder struct {
+	mock *MockPublicAccount
+}
+
+// NewMockPublicAccount creates a new mock instance
+func NewMockPublicAccount(ctrl *gomock.Controller) *MockPublicAccount {
+	mock := &MockPublicAccount{ctrl: ctrl}
+	mock.recorder = &MockPublicAccountMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPublicAccount) EXPECT() *MockPublicAccountMockRecorder {
+	return m.recorder
+}
+
+// Accounts mocks base method
+func (m *MockPublicAccount) Accounts(arg0 context.Context) ([]common.Address, error) {
+	ret := m.ctrl.Call(m, "Accounts", arg0)
+	ret0, _ := ret[0].([]common.Address)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Accounts indicates an expected call of Accounts
+func (mr *MockPublicAccountMockRecorder) Accounts(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Accounts", reflect.TypeOf((*MockPublicAccount)(nil).Accounts), arg0)
+}
+
+// MockPublicMiner is a mock of PublicMiner interface
+type MockPublicMiner struct {
+	ctrl     *gomock.Controller
+	recorder *MockPublicMinerMockRecorder
+}
+
+// MockPublicMinerMockRecorder is the mock recorder for MockPublicMiner
+type MockPublicMinerMockRecorder struct {
+	mock *MockPublicMiner
+}
+
+// NewMockPublicMiner creates a new mock instance
+func NewMockPublicMiner(ctrl *gomock.Controller) *MockPublicMiner {
+	mock := &MockPublicMiner{ctrl: ctrl}
+	mock.recorder = &MockPublicMinerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPublicMiner) EXPECT() *MockPublicMinerMockRecorder {
+	return m.recorder
+}
+
+// Mining mocks base method
+func (m *MockPublicMiner) Mining(ctx context.Context) (bool, error) {
+	ret := m.ctrl.Call(m, "Mining", ctx)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Mining indicates an expected call of Mining
+func (mr *MockPublicMinerMockRecorder) Mining(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Mining", reflect.TypeOf((*MockPublicMiner)(nil).Mining), ctx)
+}
+
+// SubmitWork mocks base method
+func (m *MockPublicMiner) SubmitWork(ctx context.Context, nonce types.BlockNonce, solution, digest common.Hash) (bool, error) {
+	ret := m.ctrl.Call(m, "SubmitWork", ctx, nonce, solution, digest)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubmitWork indicates an expected call of SubmitWork
+func (mr *MockPublicMinerMockRecorder) SubmitWork(ctx, nonce, solution, digest interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitWork", reflect.TypeOf((*MockPublicMiner)(nil).SubmitWork), ctx, nonce, solution, digest)
+}
+
+// GetWork mocks base method
+func (m *MockPublicMiner) GetWork(ctx context.Context) ([3]string, error) {
+	ret := m.ctrl.Call(m, "GetWork", ctx)
+	ret0, _ := ret[0].([3]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWork indicates an expected call of GetWork
+func (mr *MockPublicMinerMockRecorder) GetWork(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWork", reflect.TypeOf((*MockPublicMiner)(nil).GetWork), ctx)
+}
+
+// SubmitHashrate mocks base method
+func (m *MockPublicMiner) SubmitHashrate(ctx context.Context, hashrate hexutil.Uint64, id common.Hash) (bool, error) {
+	ret := m.ctrl.Call(m, "SubmitHashrate", ctx, hashrate, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SubmitHashrate indicates an expected call of SubmitHashrate
+func (mr *MockPublicMinerMockRecorder) SubmitHashrate(ctx, hashrate, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SubmitHashrate", reflect.TypeOf((*MockPublicMiner)(nil).SubmitHashrate), ctx, hashrate, id)
+}
+
+// MockPublicFilter is a mock of PublicFilter interface
+type MockPublicFilter struct {
+	ctrl     *gomock.Controller
+	recorder *MockPublicFilterMockRecorder
+}
+
+// MockPublicFilterMockRecorder is the mock recorder for MockPublicFilter
+type MockPublicFilterMockRecorder struct {
+	mock *MockPublicFilter
+}
+
+// NewMockPublicFilter creates a new mock instance
+func NewMockPublicFilter(ctrl *gomock.Controller) *MockPublicFilter {
+	mock := &MockPublicFilter{ctrl: ctrl}
+	mock.recorder = &MockPublicFilterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPublicFilter) EXPECT() *MockPublicFilterMockRecorder {
+	return m.recorder
+}
+
+// NewPendingTransactionFilter mocks base method
+func (m *MockPublicFilter) NewPendingTransactionFilter(ctx context.Context) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewPendingTransactionFilter", ctx)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewPendingTransactionFilter indicates an expected call of NewPendingTransactionFilter
+func (mr *MockPublicFilterMockRecorder) NewPendingTransactionFilter(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewPendingTransactionFilter", reflect.TypeOf((*MockPublicFilter)(nil).NewPendingTransactionFilter), ctx)
+}
+
+// NewBlockFilter mocks base method
+func (m *MockPublicFilter) NewBlockFilter(ctx context.Context) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewBlockFilter", ctx)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewBlockFilter indicates an expected call of NewBlockFilter
+func (mr *MockPublicFilterMockRecorder) NewBlockFilter(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewBlockFilter", reflect.TypeOf((*MockPublicFilter)(nil).NewBlockFilter), ctx)
+}
+
+// Logs mocks base method
+func (m *MockPublicFilter) Logs(ctx context.Context, crit filters.FilterCriteria) (*rpc.Subscription, error) {
+	ret := m.ctrl.Call(m, "Logs", ctx, crit)
+	ret0, _ := ret[0].(*rpc.Subscription)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Logs indicates an expected call of Logs
+func (mr *MockPublicFilterMockRecorder) Logs(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logs", reflect.TypeOf((*MockPublicFilter)(nil).Logs), ctx, crit)
+}
+
+// NewFilter mocks base method
+func (m *MockPublicFilter) NewFilter(ctx context.Context, crit filters.FilterCriteria) (rpc.ID, error) {
+	ret := m.ctrl.Call(m, "NewFilter", ctx, crit)
+	ret0, _ := ret[0].(rpc.ID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NewFilter indicates an expected call of NewFilter
+func (mr *MockPublicFilterMockRecorder) NewFilter(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NewFilter", reflect.TypeOf((*MockPublicFilter)(nil).NewFilter), ctx, crit)
+}
+
+// GetLogs mocks base method
+func (m *MockPublicFilter) GetLogs(ctx context.Context, crit filters.FilterCriteria) ([]*types.Log, error) {
+	ret := m.ctrl.Call(m, "GetLogs", ctx, crit)
+	ret0, _ := ret[0].([]*types.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLogs indicates an expected call of GetLogs
+func (mr *MockPublicFilterMockRecorder) GetLogs(ctx, crit interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLogs", reflect.TypeOf((*MockPublicFilter)(nil).GetLogs), ctx, crit)
+}
+
+// UninstallFilter mocks base method
+func (m *MockPublicFilter) UninstallFilter(ctx context.Context, id rpc.ID) (bool, error) {
+	ret := m.ctrl.Call(m, "UninstallFilter", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UninstallFilter indicates an expected call of UninstallFilter
+func (mr *MockPublicFilterMockRecorder) UninstallFilter(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UninstallFilter", reflect.TypeOf((*MockPublicFilter)(nil).UninstallFilter), ctx, id)
+}
+
+// GetFilterLogs mocks base method
+func (m *MockPublicFilter) GetFilterLogs(ctx context.Context, id rpc.ID) ([]*types.Log, error) {
+	ret := m.ctrl.Call(m, "GetFilterLogs", ctx, id)
+	ret0, _ := ret[0].([]*types.Log)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilterLogs indicates an expected call of GetFilterLogs
+func (mr *MockPublicFilterMockRecorder) GetFilterLogs(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilterLogs", reflect.TypeOf((*MockPublicFilter)(nil).GetFilterLogs), ctx, id)
+}
+
+// GetFilterChanges mocks base method
+func (m *MockPublicFilter) GetFilterChanges(ctx context.Context, id rpc.ID) (interface{}, error) {
+	ret := m.ctrl.Call(m, "GetFilterChanges", ctx, id)
+	ret0, _ := ret[0].(interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFilterChanges indicates an expected call of GetFilterChanges
+func (mr *MockPublicFilterMockRecorder) GetFilterChanges(ctx, id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilterChanges", reflect.TypeOf((*MockPublicFilter)(nil).GetFilterChanges), ctx, id)
 }
